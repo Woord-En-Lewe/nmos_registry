@@ -16,12 +16,14 @@ type Querier interface {
 	CreateReceiver(ctx context.Context, arg CreateReceiverParams) error
 	CreateSender(ctx context.Context, arg CreateSenderParams) error
 	CreateSource(ctx context.Context, arg CreateSourceParams) error
+	CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) error
 	DeleteDevice(ctx context.Context, id string) error
 	DeleteFlow(ctx context.Context, id string) error
 	DeleteNode(ctx context.Context, id string) error
 	DeleteReceiver(ctx context.Context, id string) error
 	DeleteSender(ctx context.Context, id string) error
 	DeleteSource(ctx context.Context, id string) error
+	DeleteSubscription(ctx context.Context, id string) error
 	GetDevice(ctx context.Context, id string) (Devices, error)
 	GetExpiredNodes(ctx context.Context, expirationTime sql.NullTime) ([]string, error)
 	GetFlow(ctx context.Context, id string) (Flows, error)
@@ -29,6 +31,7 @@ type Querier interface {
 	GetReceiver(ctx context.Context, id string) (Receivers, error)
 	GetSender(ctx context.Context, id string) (Senders, error)
 	GetSource(ctx context.Context, id string) (Sources, error)
+	GetSubscription(ctx context.Context, id string) (Subscriptions, error)
 	ListDevices(ctx context.Context) ([]Devices, error)
 	ListDevicesByNode(ctx context.Context, nodeID string) ([]Devices, error)
 	ListFlows(ctx context.Context) ([]Flows, error)
@@ -42,6 +45,7 @@ type Querier interface {
 	ListSendersByFlow(ctx context.Context, flowID sql.NullString) ([]Senders, error)
 	ListSources(ctx context.Context) ([]Sources, error)
 	ListSourcesByDevice(ctx context.Context, deviceID string) ([]Sources, error)
+	ListSubscriptions(ctx context.Context) ([]Subscriptions, error)
 	UpdateDevice(ctx context.Context, arg UpdateDeviceParams) error
 	UpdateFlow(ctx context.Context, arg UpdateFlowParams) error
 	UpdateNode(ctx context.Context, arg UpdateNodeParams) error
@@ -55,6 +59,7 @@ type Querier interface {
 	UpsertReceiver(ctx context.Context, arg UpsertReceiverParams) error
 	UpsertSender(ctx context.Context, arg UpsertSenderParams) error
 	UpsertSource(ctx context.Context, arg UpsertSourceParams) error
+	UpsertSubscription(ctx context.Context, arg UpsertSubscriptionParams) error
 }
 
 var _ Querier = (*Queries)(nil)

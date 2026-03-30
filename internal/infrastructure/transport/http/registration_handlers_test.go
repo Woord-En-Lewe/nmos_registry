@@ -79,7 +79,7 @@ func TestHeartbeat(t *testing.T) {
 	rm := registry.NewResourceManager(repo)
 	he := registry.NewHeartbeatEngine(repo, 0, 0)
 	regHandlers := NewRegistrationHandlers(rm, he)
-	queryHandlers := NewQueryHandlers(repo)
+	queryHandlers := NewQueryHandlers(repo, nil, nil, "8080")
 
 	// We need a router to parse the nodeID param
 	router := NewRouter(regHandlers, queryHandlers)

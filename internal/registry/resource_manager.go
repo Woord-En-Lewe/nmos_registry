@@ -23,6 +23,12 @@ func (m *ResourceManager) RegisterNode(ctx context.Context, node Node) error {
 }
 
 func (m *ResourceManager) UnregisterNode(ctx context.Context, id string) error {
+	devices, _ := m.repo.ListDevices(ctx)
+	for _, d := range devices {
+		if d.NodeID == id {
+			m.UnregisterDevice(ctx, d.ID)
+		}
+	}
 	return m.repo.DeleteNode(ctx, id)
 }
 
@@ -37,6 +43,30 @@ func (m *ResourceManager) RegisterDevice(ctx context.Context, device Device) err
 }
 
 func (m *ResourceManager) UnregisterDevice(ctx context.Context, id string) error {
+	sources, _ := m.repo.ListSources(ctx)
+	for _, s := range sources {
+		if s.DeviceID == id {
+			m.UnregisterSource(ctx, s.ID)
+		}
+	}
+	senders, _ := m.repo.ListSenders(ctx)
+	for _, s := range senders {
+		if s.DeviceID == id {
+			m.UnregisterSender(ctx, s.ID)
+		}
+	}
+	receivers, _ := m.repo.ListReceivers(ctx)
+	for _, r := range receivers {
+		if r.DeviceID == id {
+			m.UnregisterReceiver(ctx, r.ID)
+		}
+	}
+	flows, _ := m.repo.ListFlows(ctx)
+	for _, f := range flows {
+		if f.DeviceID == id {
+			m.UnregisterFlow(ctx, f.ID)
+		}
+	}
 	return m.repo.DeleteDevice(ctx, id)
 }
 
@@ -51,6 +81,12 @@ func (m *ResourceManager) RegisterSource(ctx context.Context, source Source) err
 }
 
 func (m *ResourceManager) UnregisterSource(ctx context.Context, id string) error {
+	flows, _ := m.repo.ListFlows(ctx)
+	for _, f := range flows {
+		if f.SourceID == id {
+			m.UnregisterFlow(ctx, f.ID)
+		}
+	}
 	return m.repo.DeleteSource(ctx, id)
 }
 

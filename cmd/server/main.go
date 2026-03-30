@@ -7,15 +7,20 @@ import (
 	"os"
 
 	"context"
+	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/mdns"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/persistence"
 	transporthttp "github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/transport/http"
+	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/transport/websocket"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/registry"
 	_ "modernc.org/sqlite"
 )
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// 1. Initialize DB
-	db, err := sql.Open("sqlite", ":memory:?_pragma=foreign_keys(1)")
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared&_pragma=foreign_keys(1)")
 	if err != nil {
 		log.Fatalf("failed to open sqlite: %v", err)
 	}
@@ -31,22 +36,40 @@ func main() {
 	repo := persistence.NewSQLiteRepository(db)
 	resourceManager := registry.NewResourceManager(repo)
 	heartbeatEngine := registry.NewHeartbeatEngine(repo, 0, 0)
+	subscriptionEngine := registry.NewSubscriptionEngine(repo)
+	wsManager := websocket.NewManager(subscriptionEngine)
+	subscriptionEngine.SetNotifier(wsManager)
+
+	go wsManager.Run()
 
 	// Start Garbage Collector
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	go heartbeatEngine.StartGarbageCollector(ctx)
 
 	// 4. Setup Router
 	regHandlers := transporthttp.NewRegistrationHandlers(resourceManager, heartbeatEngine)
-	queryHandlers := transporthttp.NewQueryHandlers(repo)
-	router := transporthttp.NewRouter(regHandlers, queryHandlers)
-
-	// 5. Start Server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
+	queryHandlers := transporthttp.NewQueryHandlers(repo, subscriptionEngine, wsManager, port)
+	router := transporthttp.NewRouter(regHandlers, queryHandlers)
+
+	// 5. Start mDNS Announcer
+	hostname, _ := os.Hostname()
+	mdnsConfig := mdns.NewConfig(hostname, 8080, 8080)
+	mdnsAnnouncer, err := mdns.NewAnnouncer(mdnsConfig)
+	if err != nil {
+		log.Printf("Warning: failed to create mDNS announcer: %v", err)
+	} else {
+		go func() {
+			if err := mdnsAnnouncer.Start(ctx); err != nil {
+				log.Printf("mDNS announcement error: %v", err)
+			}
+		}()
+		defer mdnsAnnouncer.Stop()
+	}
+
+	// 6. Start Server
 	addr := ":" + port
 	log.Printf("Starting NMOS Registry on %s", addr)
 

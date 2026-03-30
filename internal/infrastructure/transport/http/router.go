@@ -7,12 +7,27 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-// NewRouter creates a new chi router with NMOS routes
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func NewRouter(regHandlers *RegistrationHandlers, queryHandlers *QueryHandlers) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(corsMiddleware)
 
 	r.Route("/x-nmos", func(r chi.Router) {
 		r.Route("/registration", func(r chi.Router) {
@@ -51,22 +66,34 @@ func NewRouter(regHandlers *RegistrationHandlers, queryHandlers *QueryHandlers) 
 				})
 
 				r.Get("/nodes", queryHandlers.ListNodes)
+				r.Get("/nodes/", queryHandlers.ListNodes)
 				r.Get("/nodes/{id}", queryHandlers.GetNode)
 
 				r.Get("/devices", queryHandlers.ListDevices)
+				r.Get("/devices/", queryHandlers.ListDevices)
 				r.Get("/devices/{id}", queryHandlers.GetDevice)
 
 				r.Get("/sources", queryHandlers.ListSources)
+				r.Get("/sources/", queryHandlers.ListSources)
 				r.Get("/sources/{id}", queryHandlers.GetSource)
 
 				r.Get("/flows", queryHandlers.ListFlows)
+				r.Get("/flows/", queryHandlers.ListFlows)
 				r.Get("/flows/{id}", queryHandlers.GetFlow)
 
 				r.Get("/senders", queryHandlers.ListSenders)
+				r.Get("/senders/", queryHandlers.ListSenders)
 				r.Get("/senders/{id}", queryHandlers.GetSender)
 
 				r.Get("/receivers", queryHandlers.ListReceivers)
+				r.Get("/receivers/", queryHandlers.ListReceivers)
 				r.Get("/receivers/{id}", queryHandlers.GetReceiver)
+
+				r.Get("/subscriptions", queryHandlers.ListSubscriptions)
+				r.Post("/subscriptions", queryHandlers.CreateSubscription)
+				r.Get("/subscriptions/{id}", queryHandlers.GetSubscription)
+				r.Delete("/subscriptions/{id}", queryHandlers.DeleteSubscription)
+				r.Get("/subscriptions/{id}/ws", queryHandlers.HandleSubscriptionWebSocket)
 			})
 		})
 	})

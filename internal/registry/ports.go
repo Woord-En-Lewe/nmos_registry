@@ -48,3 +48,10 @@ type IRepository interface {
 type INotifier interface {
 	Notify(ctx context.Context, resourceType ResourceType, action string, data interface{}) error
 }
+
+type ISubscriptionRepository interface {
+	UpsertSubscription(ctx context.Context, subscription Subscription) error
+	GetSubscription(ctx context.Context, id string) (Subscription, error)
+	ListSubscriptions(ctx context.Context) ([]Subscription, error)
+	DeleteSubscription(ctx context.Context, id string) error
+}

@@ -28,14 +28,14 @@ func (r *SQLiteRepository) UpsertNode(ctx context.Context, node registry.Node) e
 		Version:     node.Version,
 		Label:       node.Label,
 		Description: node.Description,
-		Tags:        node.Tags,
+		Tags:        nilToEmptyJSON(node.Tags),
 		Href:        node.Href,
 		Hostname:    toNullString(node.Hostname),
-		Api:         node.Api,
-		Caps:        node.Caps,
-		Services:    node.Services,
-		Clocks:      node.Clocks,
-		Interfaces:  node.Interfaces,
+		Api:         nilToEmptyJSON(node.Api),
+		Caps:        nilToEmptyJSON(node.Caps),
+		Services:    nilToEmptyJSON(node.Services),
+		Clocks:      nilToEmptyJSON(node.Clocks),
+		Interfaces:  nilToEmptyJSON(node.Interfaces),
 		LastSeen:    sql.NullTime{Time: time.Now(), Valid: true},
 	})
 }
@@ -455,12 +455,71 @@ func (r *SQLiteRepository) ListReceivers(ctx context.Context) ([]registry.Receiv
 	return receivers, nil
 }
 
+func (r *SQLiteRepository) UpsertSubscription(ctx context.Context, subscription registry.Subscription) error {
+	return r.queries.UpsertSubscription(ctx, db.UpsertSubscriptionParams{
+		ID:              subscription.ID,
+		ResourcePath:    subscription.ResourcePath,
+		Params:          subscription.Params,
+		MaxUpdateRateMs: toNullInt64(subscription.MaxUpdateRateMs),
+		Persist:         toNullBool(subscription.Persist),
+		SecureWebsocket: toNullBool(subscription.SecureWebsocket),
+		WsHref:          toNullString(subscription.WsHref),
+	})
+}
+
+func (r *SQLiteRepository) GetSubscription(ctx context.Context, id string) (registry.Subscription, error) {
+	sub, err := r.queries.GetSubscription(ctx, id)
+	if err != nil {
+		return registry.Subscription{}, err
+	}
+	return registry.Subscription{
+		ID:              sub.ID,
+		ResourcePath:    sub.ResourcePath,
+		Params:          sub.Params,
+		MaxUpdateRateMs: fromNullInt64ToInt(sub.MaxUpdateRateMs),
+		Persist:         fromNullBool(sub.Persist),
+		SecureWebsocket: fromNullBool(sub.SecureWebsocket),
+		WsHref:          fromNullString(sub.WsHref),
+	}, nil
+}
+
+func (r *SQLiteRepository) ListSubscriptions(ctx context.Context) ([]registry.Subscription, error) {
+	dbSubs, err := r.queries.ListSubscriptions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	subscriptions := make([]registry.Subscription, len(dbSubs))
+	for i, sub := range dbSubs {
+		subscriptions[i] = registry.Subscription{
+			ID:              sub.ID,
+			ResourcePath:    sub.ResourcePath,
+			Params:          sub.Params,
+			MaxUpdateRateMs: fromNullInt64ToInt(sub.MaxUpdateRateMs),
+			Persist:         fromNullBool(sub.Persist),
+			SecureWebsocket: fromNullBool(sub.SecureWebsocket),
+			WsHref:          fromNullString(sub.WsHref),
+		}
+	}
+	return subscriptions, nil
+}
+
+func (r *SQLiteRepository) DeleteSubscription(ctx context.Context, id string) error {
+	return r.queries.DeleteSubscription(ctx, id)
+}
+
 // Helpers
 func toNullString(s *string) sql.NullString {
 	if s == nil {
 		return sql.NullString{Valid: false}
 	}
 	return sql.NullString{String: *s, Valid: true}
+}
+
+func nilToEmptyJSON(b []byte) []byte {
+	if b == nil {
+		return []byte("{}")
+	}
+	return b
 }
 
 func fromNullString(ns sql.NullString) *string {

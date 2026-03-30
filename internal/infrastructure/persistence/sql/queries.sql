@@ -280,3 +280,32 @@ WHERE id = sqlc.arg(id);
 
 -- name: DeleteReceiver :exec
 DELETE FROM receivers WHERE id = sqlc.arg(id);
+
+-- name: CreateSubscription :exec
+INSERT INTO subscriptions (
+    id, resource_path, params, max_update_rate_ms, persist, secure_websocket, ws_href
+) VALUES (
+    sqlc.arg(id), sqlc.arg(resource_path), sqlc.arg(params), sqlc.arg(max_update_rate_ms),
+    sqlc.arg(persist), sqlc.arg(secure_websocket), sqlc.arg(ws_href)
+);
+
+-- name: UpsertSubscription :exec
+INSERT INTO subscriptions (
+    id, resource_path, params, max_update_rate_ms, persist, secure_websocket, ws_href
+) VALUES (
+    sqlc.arg(id), sqlc.arg(resource_path), sqlc.arg(params), sqlc.arg(max_update_rate_ms),
+    sqlc.arg(persist), sqlc.arg(secure_websocket), sqlc.arg(ws_href)
+)
+ON CONFLICT(id) DO UPDATE SET
+    resource_path = excluded.resource_path, params = excluded.params,
+    max_update_rate_ms = excluded.max_update_rate_ms, persist = excluded.persist,
+    secure_websocket = excluded.secure_websocket, ws_href = excluded.ws_href;
+
+-- name: GetSubscription :one
+SELECT * FROM subscriptions WHERE id = sqlc.arg(id);
+
+-- name: ListSubscriptions :many
+SELECT * FROM subscriptions;
+
+-- name: DeleteSubscription :exec
+DELETE FROM subscriptions WHERE id = sqlc.arg(id);

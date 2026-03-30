@@ -8,23 +8,25 @@ import (
 )
 
 type InMemoryRepository struct {
-	mu        sync.RWMutex
-	nodes     map[string]Node
-	devices   map[string]Device
-	sources   map[string]Source
-	flows     map[string]Flow
-	senders   map[string]Sender
-	receivers map[string]Receiver
+	mu            sync.RWMutex
+	nodes         map[string]Node
+	devices       map[string]Device
+	sources       map[string]Source
+	flows         map[string]Flow
+	senders       map[string]Sender
+	receivers     map[string]Receiver
+	subscriptions map[string]Subscription
 }
 
 func NewInMemoryRepository() *InMemoryRepository {
 	return &InMemoryRepository{
-		nodes:     make(map[string]Node),
-		devices:   make(map[string]Device),
-		sources:   make(map[string]Source),
-		flows:     make(map[string]Flow),
-		senders:   make(map[string]Sender),
-		receivers: make(map[string]Receiver),
+		nodes:         make(map[string]Node),
+		devices:       make(map[string]Device),
+		sources:       make(map[string]Source),
+		flows:         make(map[string]Flow),
+		senders:       make(map[string]Sender),
+		receivers:     make(map[string]Receiver),
+		subscriptions: make(map[string]Subscription),
 	}
 }
 
@@ -263,4 +265,38 @@ func (r *InMemoryRepository) ListReceivers(ctx context.Context) ([]Receiver, err
 		receivers = append(receivers, receiver)
 	}
 	return receivers, nil
+}
+
+func (r *InMemoryRepository) UpsertSubscription(ctx context.Context, subscription Subscription) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.subscriptions[subscription.ID] = subscription
+	return nil
+}
+
+func (r *InMemoryRepository) GetSubscription(ctx context.Context, id string) (Subscription, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	sub, ok := r.subscriptions[id]
+	if !ok {
+		return Subscription{}, fmt.Errorf("subscription not found: %s", id)
+	}
+	return sub, nil
+}
+
+func (r *InMemoryRepository) ListSubscriptions(ctx context.Context) ([]Subscription, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	subs := make([]Subscription, 0, len(r.subscriptions))
+	for _, sub := range r.subscriptions {
+		subs = append(subs, sub)
+	}
+	return subs, nil
+}
+
+func (r *InMemoryRepository) DeleteSubscription(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.subscriptions, id)
+	return nil
 }

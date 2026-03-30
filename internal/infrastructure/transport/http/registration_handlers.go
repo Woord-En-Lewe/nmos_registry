@@ -2,8 +2,8 @@ package transporthttp
 
 import (
 	"encoding/json"
-	"net/http"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/registry"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -90,17 +90,17 @@ func (h *RegistrationHandlers) UnregisterResource(w http.ResponseWriter, r *http
 	var err error
 
 	switch resourceType {
-	case registry.ResourceTypeNode:
+	case registry.ResourceTypeNode, "nodes":
 		err = h.resourceManager.UnregisterNode(ctx, id)
-	case registry.ResourceTypeDevice:
+	case registry.ResourceTypeDevice, "devices":
 		err = h.resourceManager.UnregisterDevice(ctx, id)
-	case registry.ResourceTypeSource:
+	case registry.ResourceTypeSource, "sources":
 		err = h.resourceManager.UnregisterSource(ctx, id)
-	case registry.ResourceTypeFlow:
+	case registry.ResourceTypeFlow, "flows":
 		err = h.resourceManager.UnregisterFlow(ctx, id)
-	case registry.ResourceTypeSender:
+	case registry.ResourceTypeSender, "senders":
 		err = h.resourceManager.UnregisterSender(ctx, id)
-	case registry.ResourceTypeReceiver:
+	case registry.ResourceTypeReceiver, "receivers":
 		err = h.resourceManager.UnregisterReceiver(ctx, id)
 	default:
 		http.Error(w, "invalid resource type", http.StatusBadRequest)

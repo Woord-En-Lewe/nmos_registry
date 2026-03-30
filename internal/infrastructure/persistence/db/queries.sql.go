@@ -283,6 +283,38 @@ func (q *Queries) CreateSource(ctx context.Context, arg CreateSourceParams) erro
 	return err
 }
 
+const createSubscription = `-- name: CreateSubscription :exec
+INSERT INTO subscriptions (
+    id, resource_path, params, max_update_rate_ms, persist, secure_websocket, ws_href
+) VALUES (
+    ?1, ?2, ?3, ?4,
+    ?5, ?6, ?7
+)
+`
+
+type CreateSubscriptionParams struct {
+	ID              string          `json:"id"`
+	ResourcePath    string          `json:"resource_path"`
+	Params          json.RawMessage `json:"params"`
+	MaxUpdateRateMs sql.NullInt64   `json:"max_update_rate_ms"`
+	Persist         sql.NullBool    `json:"persist"`
+	SecureWebsocket sql.NullBool    `json:"secure_websocket"`
+	WsHref          sql.NullString  `json:"ws_href"`
+}
+
+func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) error {
+	_, err := q.db.ExecContext(ctx, createSubscription,
+		arg.ID,
+		arg.ResourcePath,
+		arg.Params,
+		arg.MaxUpdateRateMs,
+		arg.Persist,
+		arg.SecureWebsocket,
+		arg.WsHref,
+	)
+	return err
+}
+
 const deleteDevice = `-- name: DeleteDevice :exec
 DELETE FROM devices WHERE id = ?1
 `
@@ -334,6 +366,15 @@ DELETE FROM sources WHERE id = ?1
 
 func (q *Queries) DeleteSource(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, deleteSource, id)
+	return err
+}
+
+const deleteSubscription = `-- name: DeleteSubscription :exec
+DELETE FROM subscriptions WHERE id = ?1
+`
+
+func (q *Queries) DeleteSubscription(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteSubscription, id)
 	return err
 }
 
@@ -509,6 +550,25 @@ func (q *Queries) GetSource(ctx context.Context, id string) (Sources, error) {
 		&i.Caps,
 		&i.Parents,
 		&i.ClockName,
+	)
+	return i, err
+}
+
+const getSubscription = `-- name: GetSubscription :one
+SELECT id, resource_path, params, max_update_rate_ms, persist, secure_websocket, ws_href FROM subscriptions WHERE id = ?1
+`
+
+func (q *Queries) GetSubscription(ctx context.Context, id string) (Subscriptions, error) {
+	row := q.db.QueryRowContext(ctx, getSubscription, id)
+	var i Subscriptions
+	err := row.Scan(
+		&i.ID,
+		&i.ResourcePath,
+		&i.Params,
+		&i.MaxUpdateRateMs,
+		&i.Persist,
+		&i.SecureWebsocket,
+		&i.WsHref,
 	)
 	return i, err
 }
@@ -1035,6 +1095,41 @@ func (q *Queries) ListSourcesByDevice(ctx context.Context, deviceID string) ([]S
 			&i.Caps,
 			&i.Parents,
 			&i.ClockName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSubscriptions = `-- name: ListSubscriptions :many
+SELECT id, resource_path, params, max_update_rate_ms, persist, secure_websocket, ws_href FROM subscriptions
+`
+
+func (q *Queries) ListSubscriptions(ctx context.Context) ([]Subscriptions, error) {
+	rows, err := q.db.QueryContext(ctx, listSubscriptions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Subscriptions
+	for rows.Next() {
+		var i Subscriptions
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourcePath,
+			&i.Params,
+			&i.MaxUpdateRateMs,
+			&i.Persist,
+			&i.SecureWebsocket,
+			&i.WsHref,
 		); err != nil {
 			return nil, err
 		}
@@ -1619,6 +1714,42 @@ func (q *Queries) UpsertSource(ctx context.Context, arg UpsertSourceParams) erro
 		arg.Caps,
 		arg.Parents,
 		arg.ClockName,
+	)
+	return err
+}
+
+const upsertSubscription = `-- name: UpsertSubscription :exec
+INSERT INTO subscriptions (
+    id, resource_path, params, max_update_rate_ms, persist, secure_websocket, ws_href
+) VALUES (
+    ?1, ?2, ?3, ?4,
+    ?5, ?6, ?7
+)
+ON CONFLICT(id) DO UPDATE SET
+    resource_path = excluded.resource_path, params = excluded.params,
+    max_update_rate_ms = excluded.max_update_rate_ms, persist = excluded.persist,
+    secure_websocket = excluded.secure_websocket, ws_href = excluded.ws_href
+`
+
+type UpsertSubscriptionParams struct {
+	ID              string          `json:"id"`
+	ResourcePath    string          `json:"resource_path"`
+	Params          json.RawMessage `json:"params"`
+	MaxUpdateRateMs sql.NullInt64   `json:"max_update_rate_ms"`
+	Persist         sql.NullBool    `json:"persist"`
+	SecureWebsocket sql.NullBool    `json:"secure_websocket"`
+	WsHref          sql.NullString  `json:"ws_href"`
+}
+
+func (q *Queries) UpsertSubscription(ctx context.Context, arg UpsertSubscriptionParams) error {
+	_, err := q.db.ExecContext(ctx, upsertSubscription,
+		arg.ID,
+		arg.ResourcePath,
+		arg.Params,
+		arg.MaxUpdateRateMs,
+		arg.Persist,
+		arg.SecureWebsocket,
+		arg.WsHref,
 	)
 	return err
 }

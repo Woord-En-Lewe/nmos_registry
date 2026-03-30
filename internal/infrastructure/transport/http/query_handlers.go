@@ -2,19 +2,27 @@ package transporthttp
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/transport/websocket"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/registry"
 	"github.com/go-chi/chi/v5"
 )
 
 type QueryHandlers struct {
-	repo registry.IRepository
+	repo               registry.IRepository
+	subscriptionEngine *registry.SubscriptionEngine
+	wsManager          *websocket.Manager
+	wsBaseURL          string
 }
 
-func NewQueryHandlers(repo registry.IRepository) *QueryHandlers {
+func NewQueryHandlers(repo registry.IRepository, subscriptionEngine *registry.SubscriptionEngine, wsManager *websocket.Manager, wsBaseURL string) *QueryHandlers {
 	return &QueryHandlers{
-		repo: repo,
+		repo:               repo,
+		subscriptionEngine: subscriptionEngine,
+		wsManager:          wsManager,
+		wsBaseURL:          wsBaseURL,
 	}
 }
 
@@ -154,4 +162,82 @@ func (h *QueryHandlers) GetReceiver(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(receiver)
+}
+
+func (h *QueryHandlers) CreateSubscription(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req CreateSubscriptionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.ResourcePath == "" {
+		http.Error(w, "resource_path is required", http.StatusBadRequest)
+		return
+	}
+
+	sub, err := h.subscriptionEngine.CreateSubscription(ctx, req.ResourcePath, req.Params, req.MaxUpdateRateMs, req.Persist, req.SecureWebsocket)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	wsProtocol := "ws"
+	if sub.SecureWebsocket != nil && *sub.SecureWebsocket {
+		wsProtocol = "wss"
+	}
+	wsHref := fmt.Sprintf("%s://%s/x-nmos/query/v1.3/subscriptions/%s/ws", wsProtocol, h.wsBaseURL, sub.ID)
+	sub.WsHref = &wsHref
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(sub)
+}
+
+func (h *QueryHandlers) GetSubscription(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	ctx := r.Context()
+	sub, err := h.subscriptionEngine.GetSubscription(ctx, id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(sub)
+}
+
+func (h *QueryHandlers) ListSubscriptions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	subs, err := h.subscriptionEngine.ListSubscriptions(ctx)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(subs)
+}
+
+func (h *QueryHandlers) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	ctx := r.Context()
+	if err := h.subscriptionEngine.DeleteSubscription(ctx, id); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *QueryHandlers) HandleSubscriptionWebSocket(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	h.wsManager.HandleWebSocket(w, r, id)
+}
+
+type CreateSubscriptionRequest struct {
+	ResourcePath    string          `json:"resource_path"`
+	Params          json.RawMessage `json:"params,omitempty"`
+	MaxUpdateRateMs *int            `json:"max_update_rate_ms,omitempty"`
+	Persist         *bool           `json:"persist,omitempty"`
+	SecureWebsocket *bool           `json:"secure_websocket,omitempty"`
 }
