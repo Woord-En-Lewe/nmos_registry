@@ -17,21 +17,17 @@ type Browser interface {
 }
 
 type browser struct {
-	iface *net.Interface
+	ifaces []net.Interface
 }
 
 func NewBrowser() (Browser, error) {
-	iface, err := net.InterfaceByName("")
+	ifaces, err := allInterfaces()
 	if err != nil {
-		localIface, err := defaultInterface()
-		if err != nil {
-			return nil, fmt.Errorf("failed to find network interface: %w", err)
-		}
-		iface = localIface
+		return nil, fmt.Errorf("failed to find network interfaces: %w", err)
 	}
 
 	return &browser{
-		iface: iface,
+		ifaces: ifaces,
 	}, nil
 }
 
@@ -44,7 +40,7 @@ func (b *browser) DiscoverQueryAPI(ctx context.Context) ([]DiscoveredService, er
 }
 
 func (b *browser) discover(ctx context.Context, serviceType string) ([]DiscoveredService, error) {
-	resolver, err := zeroconf.NewResolver(zeroconf.SelectIfaces([]net.Interface{*b.iface}))
+	resolver, err := zeroconf.NewResolver(zeroconf.SelectIfaces(b.ifaces))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resolver: %w", err)
 	}
