@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -129,7 +130,7 @@ func (m *Manager) writePump(client *Client) {
 			w.Write(message)
 
 			n := len(client.send)
-			for i := 0; i < n; i++ {
+			for range n {
 				w.Write([]byte{'\n'})
 				w.Write(<-client.send)
 			}
@@ -171,7 +172,7 @@ func (m *Manager) readPump(client *Client) {
 	}
 }
 
-func (m *Manager) Notify(ctx context.Context, resourceType registry.ResourceType, action string, data interface{}) error {
+func (m *Manager) Notify(ctx context.Context, resourceType registry.ResourceType, action string, data any) error {
 	msg := WebSocketMessage{
 		SubscriptionID: "",
 		ResourceType:   resourceType,
@@ -213,12 +214,26 @@ func (m *Manager) matchesSubscription(resourcePath, subscriptionPath string) boo
 		return true
 	}
 
-	if subscriptionPath == "/"+string(registry.ResourceTypeNode)+"s" ||
-		subscriptionPath == "/"+string(registry.ResourceTypeDevice)+"s" ||
-		subscriptionPath == "/"+string(registry.ResourceTypeSource)+"s" ||
-		subscriptionPath == "/"+string(registry.ResourceTypeFlow)+"s" ||
-		subscriptionPath == "/"+string(registry.ResourceTypeSender)+"s" ||
-		subscriptionPath == "/"+string(registry.ResourceTypeReceiver)+"s" {
+	if subscriptionPath == "/" {
+		return true
+	}
+
+	if strings.Contains(subscriptionPath, "*") {
+		pattern := strings.Trim(subscriptionPath, "/")
+		parts := strings.Split(pattern, "/")
+		resourceParts := strings.Split(strings.Trim(resourcePath, "/"), "/")
+
+		for i, part := range parts {
+			if part == "*" {
+				continue
+			}
+			if i >= len(resourceParts) {
+				return false
+			}
+			if part != resourceParts[i] {
+				return false
+			}
+		}
 		return true
 	}
 

@@ -46,7 +46,7 @@ type IRepository interface {
 }
 
 type INotifier interface {
-	Notify(ctx context.Context, resourceType ResourceType, action string, data interface{}) error
+	Notify(ctx context.Context, resourceType ResourceType, action string, data any) error
 }
 
 type ISubscriptionRepository interface {

@@ -143,3 +143,51 @@ func (m *ResourceManager) RegisterReceiver(ctx context.Context, receiver Receive
 func (m *ResourceManager) UnregisterReceiver(ctx context.Context, id string) error {
 	return m.repo.DeleteReceiver(ctx, id)
 }
+
+func (m *ResourceManager) NodeExists(ctx context.Context, id string) (bool, error) {
+	_, err := m.repo.GetNode(ctx, id)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *ResourceManager) DeviceExists(ctx context.Context, id string) (bool, error) {
+	_, err := m.repo.GetDevice(ctx, id)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *ResourceManager) SourceExists(ctx context.Context, id string) (bool, error) {
+	_, err := m.repo.GetSource(ctx, id)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *ResourceManager) FlowExists(ctx context.Context, id string) (bool, error) {
+	_, err := m.repo.GetFlow(ctx, id)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *ResourceManager) SenderExists(ctx context.Context, id string) (bool, error) {
+	_, err := m.repo.GetSender(ctx, id)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (m *ResourceManager) ReceiverExists(ctx context.Context, id string) (bool, error) {
+	_, err := m.repo.GetReceiver(ctx, id)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}

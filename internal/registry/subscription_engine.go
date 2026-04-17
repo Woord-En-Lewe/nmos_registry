@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -72,7 +73,7 @@ func (e *SubscriptionEngine) DeleteSubscription(ctx context.Context, id string) 
 	return nil
 }
 
-func (e *SubscriptionEngine) Notify(ctx context.Context, resourceType ResourceType, action string, data interface{}) error {
+func (e *SubscriptionEngine) Notify(ctx context.Context, resourceType ResourceType, action string, data any) error {
 	if e.notifier == nil {
 		return nil
 	}
@@ -96,5 +97,32 @@ func (e *SubscriptionEngine) Notify(ctx context.Context, resourceType ResourceTy
 }
 
 func (e *SubscriptionEngine) matchesSubscription(resourcePath, subscriptionPath string) bool {
-	return subscriptionPath == resourcePath
+	if subscriptionPath == resourcePath {
+		return true
+	}
+
+	if subscriptionPath == "/" {
+		return true
+	}
+
+	if strings.Contains(subscriptionPath, "*") {
+		pattern := strings.Trim(subscriptionPath, "/")
+		parts := strings.Split(pattern, "/")
+		resourceParts := strings.Split(strings.Trim(resourcePath, "/"), "/")
+
+		for i, part := range parts {
+			if part == "*" {
+				continue
+			}
+			if i >= len(resourceParts) {
+				return false
+			}
+			if part != resourceParts[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	return false
 }
