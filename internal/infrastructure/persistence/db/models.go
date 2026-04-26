@@ -11,6 +11,7 @@ import (
 
 type Devices struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	NodeID      string          `json:"node_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
@@ -24,6 +25,7 @@ type Devices struct {
 
 type Flows struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	SourceID               string          `json:"source_id"`
 	DeviceID               string          `json:"device_id"`
 	Version                string          `json:"version"`
@@ -46,6 +48,7 @@ type Flows struct {
 
 type Nodes struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
 	Description string          `json:"description"`
@@ -62,6 +65,7 @@ type Nodes struct {
 
 type Receivers struct {
 	ID                   string          `json:"id"`
+	ApiVersion           string          `json:"api_version"`
 	DeviceID             string          `json:"device_id"`
 	Version              string          `json:"version"`
 	Label                string          `json:"label"`
@@ -77,6 +81,7 @@ type Receivers struct {
 
 type Senders struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	DeviceID               string          `json:"device_id"`
 	FlowID                 sql.NullString  `json:"flow_id"`
 	Version                string          `json:"version"`
@@ -92,6 +97,7 @@ type Senders struct {
 
 type Sources struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	DeviceID    string          `json:"device_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`

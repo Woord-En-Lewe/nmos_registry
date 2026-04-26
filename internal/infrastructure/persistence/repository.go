@@ -25,6 +25,7 @@ func NewSQLiteRepository(sqlDB *sql.DB) *SQLiteRepository {
 func (r *SQLiteRepository) UpsertNode(ctx context.Context, node registry.Node) error {
 	return r.queries.UpsertNode(ctx, db.UpsertNodeParams{
 		ID:          node.ID,
+		ApiVersion:  node.ApiVersion,
 		Version:     node.Version,
 		Label:       node.Label,
 		Description: node.Description,
@@ -51,6 +52,7 @@ func (r *SQLiteRepository) GetNode(ctx context.Context, id string) (registry.Nod
 	}
 	return registry.Node{
 		ID:          n.ID,
+		ApiVersion:  n.ApiVersion,
 		Version:     n.Version,
 		Label:       n.Label,
 		Description: n.Description,
@@ -75,6 +77,7 @@ func (r *SQLiteRepository) ListNodes(ctx context.Context) ([]registry.Node, erro
 	for i, n := range dbNodes {
 		nodes[i] = registry.Node{
 			ID:          n.ID,
+			ApiVersion:  n.ApiVersion,
 			Version:     n.Version,
 			Label:       n.Label,
 			Description: n.Description,
@@ -107,6 +110,7 @@ func (r *SQLiteRepository) GetExpiredNodes(ctx context.Context, expirationTime t
 func (r *SQLiteRepository) UpsertDevice(ctx context.Context, device registry.Device) error {
 	return r.queries.UpsertDevice(ctx, db.UpsertDeviceParams{
 		ID:          device.ID,
+		ApiVersion:  device.ApiVersion,
 		NodeID:      device.NodeID,
 		Version:     device.Version,
 		Label:       device.Label,
@@ -130,6 +134,7 @@ func (r *SQLiteRepository) GetDevice(ctx context.Context, id string) (registry.D
 	}
 	return registry.Device{
 		ID:          d.ID,
+		ApiVersion:  d.ApiVersion,
 		NodeID:      d.NodeID,
 		Version:     d.Version,
 		Label:       d.Label,
@@ -151,6 +156,7 @@ func (r *SQLiteRepository) ListDevices(ctx context.Context) ([]registry.Device, 
 	for i, d := range dbDevices {
 		devices[i] = registry.Device{
 			ID:          d.ID,
+			ApiVersion:  d.ApiVersion,
 			NodeID:      d.NodeID,
 			Version:     d.Version,
 			Label:       d.Label,
@@ -169,6 +175,7 @@ func (r *SQLiteRepository) ListDevices(ctx context.Context) ([]registry.Device, 
 func (r *SQLiteRepository) UpsertSource(ctx context.Context, source registry.Source) error {
 	return r.queries.UpsertSource(ctx, db.UpsertSourceParams{
 		ID:          source.ID,
+		ApiVersion:  source.ApiVersion,
 		DeviceID:    source.DeviceID,
 		Version:     source.Version,
 		Label:       source.Label,
@@ -193,6 +200,7 @@ func (r *SQLiteRepository) GetSource(ctx context.Context, id string) (registry.S
 	}
 	return registry.Source{
 		ID:          s.ID,
+		ApiVersion:  s.ApiVersion,
 		DeviceID:    s.DeviceID,
 		Version:     s.Version,
 		Label:       s.Label,
@@ -215,6 +223,7 @@ func (r *SQLiteRepository) ListSources(ctx context.Context) ([]registry.Source, 
 	for i, s := range dbSources {
 		sources[i] = registry.Source{
 			ID:          s.ID,
+			ApiVersion:  s.ApiVersion,
 			DeviceID:    s.DeviceID,
 			Version:     s.Version,
 			Label:       s.Label,
@@ -234,6 +243,7 @@ func (r *SQLiteRepository) ListSources(ctx context.Context) ([]registry.Source, 
 func (r *SQLiteRepository) UpsertFlow(ctx context.Context, flow registry.Flow) error {
 	return r.queries.UpsertFlow(ctx, db.UpsertFlowParams{
 		ID:                     flow.ID,
+		ApiVersion:             flow.ApiVersion,
 		SourceID:               flow.SourceID,
 		DeviceID:               flow.DeviceID,
 		Version:                flow.Version,
@@ -266,6 +276,7 @@ func (r *SQLiteRepository) GetFlow(ctx context.Context, id string) (registry.Flo
 	}
 	return registry.Flow{
 		ID:                     f.ID,
+		ApiVersion:             f.ApiVersion,
 		SourceID:               f.SourceID,
 		DeviceID:               f.DeviceID,
 		Version:                f.Version,
@@ -296,6 +307,7 @@ func (r *SQLiteRepository) ListFlows(ctx context.Context) ([]registry.Flow, erro
 	for i, f := range dbFlows {
 		flows[i] = registry.Flow{
 			ID:                     f.ID,
+			ApiVersion:             f.ApiVersion,
 			SourceID:               f.SourceID,
 			DeviceID:               f.DeviceID,
 			Version:                f.Version,
@@ -323,6 +335,7 @@ func (r *SQLiteRepository) ListFlows(ctx context.Context) ([]registry.Flow, erro
 func (r *SQLiteRepository) UpsertSender(ctx context.Context, sender registry.Sender) error {
 	return r.queries.UpsertSender(ctx, db.UpsertSenderParams{
 		ID:                     sender.ID,
+		ApiVersion:             sender.ApiVersion,
 		DeviceID:               sender.DeviceID,
 		FlowID:                 toNullString(sender.FlowID),
 		Version:                sender.Version,
@@ -348,6 +361,7 @@ func (r *SQLiteRepository) GetSender(ctx context.Context, id string) (registry.S
 	}
 	return registry.Sender{
 		ID:                     s.ID,
+		ApiVersion:             s.ApiVersion,
 		DeviceID:               s.DeviceID,
 		FlowID:                 fromNullString(s.FlowID),
 		Version:                s.Version,
@@ -371,6 +385,7 @@ func (r *SQLiteRepository) ListSenders(ctx context.Context) ([]registry.Sender, 
 	for i, s := range dbSenders {
 		senders[i] = registry.Sender{
 			ID:                     s.ID,
+			ApiVersion:             s.ApiVersion,
 			DeviceID:               s.DeviceID,
 			FlowID:                 fromNullString(s.FlowID),
 			Version:                s.Version,
@@ -391,6 +406,7 @@ func (r *SQLiteRepository) ListSenders(ctx context.Context) ([]registry.Sender, 
 func (r *SQLiteRepository) UpsertReceiver(ctx context.Context, receiver registry.Receiver) error {
 	return r.queries.UpsertReceiver(ctx, db.UpsertReceiverParams{
 		ID:                   receiver.ID,
+		ApiVersion:           receiver.ApiVersion,
 		DeviceID:             receiver.DeviceID,
 		Version:              receiver.Version,
 		Label:                receiver.Label,
@@ -416,6 +432,7 @@ func (r *SQLiteRepository) GetReceiver(ctx context.Context, id string) (registry
 	}
 	return registry.Receiver{
 		ID:                   rec.ID,
+		ApiVersion:           rec.ApiVersion,
 		DeviceID:             rec.DeviceID,
 		Version:              rec.Version,
 		Label:                rec.Label,
@@ -439,6 +456,7 @@ func (r *SQLiteRepository) ListReceivers(ctx context.Context) ([]registry.Receiv
 	for i, rec := range dbReceivers {
 		receivers[i] = registry.Receiver{
 			ID:                   rec.ID,
+			ApiVersion:           rec.ApiVersion,
 			DeviceID:             rec.DeviceID,
 			Version:              rec.Version,
 			Label:                rec.Label,

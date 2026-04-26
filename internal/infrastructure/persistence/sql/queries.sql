@@ -1,22 +1,22 @@
 -- name: CreateNode :exec
 INSERT INTO nodes (
-    id, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
+    id, api_version, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description), sqlc.arg(tags),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description), sqlc.arg(tags),
     sqlc.arg(href), sqlc.arg(hostname), sqlc.arg(api), sqlc.arg(caps), sqlc.arg(services),
     sqlc.arg(clocks), sqlc.arg(interfaces), sqlc.arg(last_seen)
 );
 
 -- name: UpsertNode :exec
 INSERT INTO nodes (
-    id, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
+    id, api_version, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description), sqlc.arg(tags),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description), sqlc.arg(tags),
     sqlc.arg(href), sqlc.arg(hostname), sqlc.arg(api), sqlc.arg(caps), sqlc.arg(services),
     sqlc.arg(clocks), sqlc.arg(interfaces), sqlc.arg(last_seen)
 )
 ON CONFLICT(id) DO UPDATE SET
-    version = excluded.version, label = excluded.label, description = excluded.description,
+    api_version = excluded.api_version, version = excluded.version, label = excluded.label, description = excluded.description,
     tags = excluded.tags, href = excluded.href, hostname = excluded.hostname,
     api = excluded.api, caps = excluded.caps, services = excluded.services,
     clocks = excluded.clocks, interfaces = excluded.interfaces, last_seen = excluded.last_seen;
@@ -46,21 +46,21 @@ SELECT id FROM nodes WHERE last_seen < sqlc.arg(expiration_time);
 
 -- name: CreateDevice :exec
 INSERT INTO devices (
-    id, node_id, version, label, description, tags, type, senders, receivers, controls
+    id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(node_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(node_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
     sqlc.arg(tags), sqlc.arg(type), sqlc.arg(senders), sqlc.arg(receivers), sqlc.arg(controls)
 );
 
 -- name: UpsertDevice :exec
 INSERT INTO devices (
-    id, node_id, version, label, description, tags, type, senders, receivers, controls
+    id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(node_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(node_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
     sqlc.arg(tags), sqlc.arg(type), sqlc.arg(senders), sqlc.arg(receivers), sqlc.arg(controls)
 )
 ON CONFLICT(id) DO UPDATE SET
-    node_id = excluded.node_id, version = excluded.version, label = excluded.label,
+    api_version = excluded.api_version, node_id = excluded.node_id, version = excluded.version, label = excluded.label,
     description = excluded.description, tags = excluded.tags, type = excluded.type,
     senders = excluded.senders, receivers = excluded.receivers, controls = excluded.controls;
 
@@ -85,21 +85,21 @@ DELETE FROM devices WHERE id = sqlc.arg(id);
 
 -- name: CreateSource :exec
 INSERT INTO sources (
-    id, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
+    id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
     sqlc.arg(tags), sqlc.arg(grain_rate), sqlc.arg(format), sqlc.arg(caps), sqlc.arg(parents), sqlc.arg(clock_name)
 );
 
 -- name: UpsertSource :exec
 INSERT INTO sources (
-    id, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
+    id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
     sqlc.arg(tags), sqlc.arg(grain_rate), sqlc.arg(format), sqlc.arg(caps), sqlc.arg(parents), sqlc.arg(clock_name)
 )
 ON CONFLICT(id) DO UPDATE SET
-    device_id = excluded.device_id, version = excluded.version, label = excluded.label,
+    api_version = excluded.api_version, device_id = excluded.device_id, version = excluded.version, label = excluded.label,
     description = excluded.description, tags = excluded.tags, grain_rate = excluded.grain_rate,
     format = excluded.format, caps = excluded.caps, parents = excluded.parents,
     clock_name = excluded.clock_name;
@@ -125,11 +125,11 @@ DELETE FROM sources WHERE id = sqlc.arg(id);
 
 -- name: CreateFlow :exec
 INSERT INTO flows (
-    id, source_id, device_id, version, label, description, tags, format, media_type,
+    id, api_version, source_id, device_id, version, label, description, tags, format, media_type,
     sample_rate, bit_depth, DID_SDID, grain_rate, frame_width, frame_height,
     interlace_mode, colorspace, components, transfer_characteristic
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(source_id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(source_id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label),
     sqlc.arg(description), sqlc.arg(tags), sqlc.arg(format), sqlc.arg(media_type),
     sqlc.arg(sample_rate), sqlc.arg(bit_depth), sqlc.arg(DID_SDID), sqlc.arg(grain_rate),
     sqlc.arg(frame_width), sqlc.arg(frame_height), sqlc.arg(interlace_mode), sqlc.arg(colorspace),
@@ -138,18 +138,18 @@ INSERT INTO flows (
 
 -- name: UpsertFlow :exec
 INSERT INTO flows (
-    id, source_id, device_id, version, label, description, tags, format, media_type,
+    id, api_version, source_id, device_id, version, label, description, tags, format, media_type,
     sample_rate, bit_depth, DID_SDID, grain_rate, frame_width, frame_height,
     interlace_mode, colorspace, components, transfer_characteristic
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(source_id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(source_id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label),
     sqlc.arg(description), sqlc.arg(tags), sqlc.arg(format), sqlc.arg(media_type),
     sqlc.arg(sample_rate), sqlc.arg(bit_depth), sqlc.arg(DID_SDID), sqlc.arg(grain_rate),
     sqlc.arg(frame_width), sqlc.arg(frame_height), sqlc.arg(interlace_mode), sqlc.arg(colorspace),
     sqlc.arg(components), sqlc.arg(transfer_characteristic)
 )
 ON CONFLICT(id) DO UPDATE SET
-    source_id = excluded.source_id, device_id = excluded.device_id, version = excluded.version,
+    api_version = excluded.api_version, source_id = excluded.source_id, device_id = excluded.device_id, version = excluded.version,
     label = excluded.label, description = excluded.description, tags = excluded.tags,
     format = excluded.format, media_type = excluded.media_type, sample_rate = excluded.sample_rate,
     bit_depth = excluded.bit_depth, DID_SDID = excluded.DID_SDID, grain_rate = excluded.grain_rate,
@@ -185,25 +185,25 @@ DELETE FROM flows WHERE id = sqlc.arg(id);
 
 -- name: CreateSender :exec
 INSERT INTO senders (
-    id, device_id, flow_id, version, label, description, tags, transport,
+    id, api_version, device_id, flow_id, version, label, description, tags, transport,
     manifest_href, interface_bindings, subscription_receiver_id, subscription_active
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(device_id), sqlc.arg(flow_id), sqlc.arg(version), sqlc.arg(label),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(flow_id), sqlc.arg(version), sqlc.arg(label),
     sqlc.arg(description), sqlc.arg(tags), sqlc.arg(transport), sqlc.arg(manifest_href),
     sqlc.arg(interface_bindings), sqlc.arg(subscription_receiver_id), sqlc.arg(subscription_active)
 );
 
 -- name: UpsertSender :exec
 INSERT INTO senders (
-    id, device_id, flow_id, version, label, description, tags, transport,
+    id, api_version, device_id, flow_id, version, label, description, tags, transport,
     manifest_href, interface_bindings, subscription_receiver_id, subscription_active
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(device_id), sqlc.arg(flow_id), sqlc.arg(version), sqlc.arg(label),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(flow_id), sqlc.arg(version), sqlc.arg(label),
     sqlc.arg(description), sqlc.arg(tags), sqlc.arg(transport), sqlc.arg(manifest_href),
     sqlc.arg(interface_bindings), sqlc.arg(subscription_receiver_id), sqlc.arg(subscription_active)
 )
 ON CONFLICT(id) DO UPDATE SET
-    device_id = excluded.device_id, flow_id = excluded.flow_id, version = excluded.version,
+    api_version = excluded.api_version, device_id = excluded.device_id, flow_id = excluded.flow_id, version = excluded.version,
     label = excluded.label, description = excluded.description, tags = excluded.tags,
     transport = excluded.transport, manifest_href = excluded.manifest_href,
     interface_bindings = excluded.interface_bindings,
@@ -236,25 +236,25 @@ DELETE FROM senders WHERE id = sqlc.arg(id);
 
 -- name: CreateReceiver :exec
 INSERT INTO receivers (
-    id, device_id, version, label, description, tags, transport, format, caps,
+    id, api_version, device_id, version, label, description, tags, transport, format, caps,
     interface_bindings, subscription_sender_id, subscription_active
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
     sqlc.arg(tags), sqlc.arg(transport), sqlc.arg(format), sqlc.arg(caps),
     sqlc.arg(interface_bindings), sqlc.arg(subscription_sender_id), sqlc.arg(subscription_active)
 );
 
 -- name: UpsertReceiver :exec
 INSERT INTO receivers (
-    id, device_id, version, label, description, tags, transport, format, caps,
+    id, api_version, device_id, version, label, description, tags, transport, format, caps,
     interface_bindings, subscription_sender_id, subscription_active
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
     sqlc.arg(tags), sqlc.arg(transport), sqlc.arg(format), sqlc.arg(caps),
     sqlc.arg(interface_bindings), sqlc.arg(subscription_sender_id), sqlc.arg(subscription_active)
 )
 ON CONFLICT(id) DO UPDATE SET
-    device_id = excluded.device_id, version = excluded.version, label = excluded.label,
+    api_version = excluded.api_version, device_id = excluded.device_id, version = excluded.version, label = excluded.label,
     description = excluded.description, tags = excluded.tags, transport = excluded.transport,
     format = excluded.format, caps = excluded.caps, interface_bindings = excluded.interface_bindings,
     subscription_sender_id = excluded.subscription_sender_id,

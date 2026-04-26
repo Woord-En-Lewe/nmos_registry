@@ -1,5 +1,6 @@
 CREATE TABLE nodes (
     id TEXT PRIMARY KEY,
+    api_version TEXT NOT NULL DEFAULT 'v1.3',
     version TEXT NOT NULL,
     label TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE nodes (
 
 CREATE TABLE devices (
     id TEXT PRIMARY KEY,
+    api_version TEXT NOT NULL DEFAULT 'v1.3',
     node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
     version TEXT NOT NULL,
     label TEXT NOT NULL,
@@ -29,6 +31,7 @@ CREATE TABLE devices (
 
 CREATE TABLE sources (
     id TEXT PRIMARY KEY,
+    api_version TEXT NOT NULL DEFAULT 'v1.3',
     device_id TEXT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
     version TEXT NOT NULL,
     label TEXT NOT NULL,
@@ -43,6 +46,7 @@ CREATE TABLE sources (
 
 CREATE TABLE flows (
     id TEXT PRIMARY KEY,
+    api_version TEXT NOT NULL DEFAULT 'v1.3',
     source_id TEXT NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
     device_id TEXT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
     version TEXT NOT NULL,
@@ -65,6 +69,7 @@ CREATE TABLE flows (
 
 CREATE TABLE senders (
     id TEXT PRIMARY KEY,
+    api_version TEXT NOT NULL DEFAULT 'v1.3',
     device_id TEXT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
     flow_id TEXT REFERENCES flows(id) ON DELETE SET NULL,
     version TEXT NOT NULL,
@@ -80,6 +85,7 @@ CREATE TABLE senders (
 
 CREATE TABLE receivers (
     id TEXT PRIMARY KEY,
+    api_version TEXT NOT NULL DEFAULT 'v1.3',
     device_id TEXT NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
     version TEXT NOT NULL,
     label TEXT NOT NULL,

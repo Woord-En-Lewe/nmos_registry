@@ -44,14 +44,16 @@ func NewConfig(hostname string, regPort, queryPort int) *Config {
 func (c *Config) RegistrationService() *Service {
 	return &Service{
 		ServiceType:  RegistrationServiceType,
-		InstanceName: c.Hostname + "._nmos-registration._tcp." + Domain,
+		InstanceName: c.Hostname + "._nmos-register._tcp." + Domain,
 		Port:         c.RegistrationPort,
 		Priority:     c.Priority,
 		Weight:       DefaultWeight,
 		TTL:          uint32(c.TTL.Seconds()),
 		TXTRecords: map[string]string{
-			"api_ver": RegistryAPIVersion,
-			"pri":     formatPriority(c.Priority),
+			"api_ver":   RegistryAPIVersion,
+			"api_proto": "http",
+			"pri":       formatPriority(c.Priority),
+			"api_auth":  "false",
 		},
 	}
 }
@@ -65,8 +67,10 @@ func (c *Config) QueryService() *Service {
 		Weight:       DefaultWeight,
 		TTL:          uint32(c.TTL.Seconds()),
 		TXTRecords: map[string]string{
-			"api_ver": RegistryAPIVersion,
-			"pri":     formatPriority(c.Priority),
+			"api_ver":   RegistryAPIVersion,
+			"api_proto": "http",
+			"pri":       formatPriority(c.Priority),
+			"api_auth":  "false",
 		},
 	}
 }

@@ -13,15 +13,16 @@ import (
 
 const createDevice = `-- name: CreateDevice :exec
 INSERT INTO devices (
-    id, node_id, version, label, description, tags, type, senders, receivers, controls
+    id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9, ?10
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10, ?11
 )
 `
 
 type CreateDeviceParams struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	NodeID      string          `json:"node_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
@@ -36,6 +37,7 @@ type CreateDeviceParams struct {
 func (q *Queries) CreateDevice(ctx context.Context, arg CreateDeviceParams) error {
 	_, err := q.db.ExecContext(ctx, createDevice,
 		arg.ID,
+		arg.ApiVersion,
 		arg.NodeID,
 		arg.Version,
 		arg.Label,
@@ -51,20 +53,21 @@ func (q *Queries) CreateDevice(ctx context.Context, arg CreateDeviceParams) erro
 
 const createFlow = `-- name: CreateFlow :exec
 INSERT INTO flows (
-    id, source_id, device_id, version, label, description, tags, format, media_type,
+    id, api_version, source_id, device_id, version, label, description, tags, format, media_type,
     sample_rate, bit_depth, DID_SDID, grain_rate, frame_width, frame_height,
     interlace_mode, colorspace, components, transfer_characteristic
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9,
-    ?10, ?11, ?12, ?13,
-    ?14, ?15, ?16, ?17,
-    ?18, ?19
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10,
+    ?11, ?12, ?13, ?14,
+    ?15, ?16, ?17, ?18,
+    ?19, ?20
 )
 `
 
 type CreateFlowParams struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	SourceID               string          `json:"source_id"`
 	DeviceID               string          `json:"device_id"`
 	Version                string          `json:"version"`
@@ -88,6 +91,7 @@ type CreateFlowParams struct {
 func (q *Queries) CreateFlow(ctx context.Context, arg CreateFlowParams) error {
 	_, err := q.db.ExecContext(ctx, createFlow,
 		arg.ID,
+		arg.ApiVersion,
 		arg.SourceID,
 		arg.DeviceID,
 		arg.Version,
@@ -112,16 +116,17 @@ func (q *Queries) CreateFlow(ctx context.Context, arg CreateFlowParams) error {
 
 const createNode = `-- name: CreateNode :exec
 INSERT INTO nodes (
-    id, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
+    id, api_version, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9, ?10,
-    ?11, ?12, ?13
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10, ?11,
+    ?12, ?13, ?14
 )
 `
 
 type CreateNodeParams struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
 	Description string          `json:"description"`
@@ -139,6 +144,7 @@ type CreateNodeParams struct {
 func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) error {
 	_, err := q.db.ExecContext(ctx, createNode,
 		arg.ID,
+		arg.ApiVersion,
 		arg.Version,
 		arg.Label,
 		arg.Description,
@@ -157,17 +163,18 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) error {
 
 const createReceiver = `-- name: CreateReceiver :exec
 INSERT INTO receivers (
-    id, device_id, version, label, description, tags, transport, format, caps,
+    id, api_version, device_id, version, label, description, tags, transport, format, caps,
     interface_bindings, subscription_sender_id, subscription_active
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9,
-    ?10, ?11, ?12
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10,
+    ?11, ?12, ?13
 )
 `
 
 type CreateReceiverParams struct {
 	ID                   string          `json:"id"`
+	ApiVersion           string          `json:"api_version"`
 	DeviceID             string          `json:"device_id"`
 	Version              string          `json:"version"`
 	Label                string          `json:"label"`
@@ -184,6 +191,7 @@ type CreateReceiverParams struct {
 func (q *Queries) CreateReceiver(ctx context.Context, arg CreateReceiverParams) error {
 	_, err := q.db.ExecContext(ctx, createReceiver,
 		arg.ID,
+		arg.ApiVersion,
 		arg.DeviceID,
 		arg.Version,
 		arg.Label,
@@ -201,17 +209,18 @@ func (q *Queries) CreateReceiver(ctx context.Context, arg CreateReceiverParams) 
 
 const createSender = `-- name: CreateSender :exec
 INSERT INTO senders (
-    id, device_id, flow_id, version, label, description, tags, transport,
+    id, api_version, device_id, flow_id, version, label, description, tags, transport,
     manifest_href, interface_bindings, subscription_receiver_id, subscription_active
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9,
-    ?10, ?11, ?12
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10,
+    ?11, ?12, ?13
 )
 `
 
 type CreateSenderParams struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	DeviceID               string          `json:"device_id"`
 	FlowID                 sql.NullString  `json:"flow_id"`
 	Version                string          `json:"version"`
@@ -228,6 +237,7 @@ type CreateSenderParams struct {
 func (q *Queries) CreateSender(ctx context.Context, arg CreateSenderParams) error {
 	_, err := q.db.ExecContext(ctx, createSender,
 		arg.ID,
+		arg.ApiVersion,
 		arg.DeviceID,
 		arg.FlowID,
 		arg.Version,
@@ -245,15 +255,16 @@ func (q *Queries) CreateSender(ctx context.Context, arg CreateSenderParams) erro
 
 const createSource = `-- name: CreateSource :exec
 INSERT INTO sources (
-    id, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
+    id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9, ?10, ?11
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10, ?11, ?12
 )
 `
 
 type CreateSourceParams struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	DeviceID    string          `json:"device_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
@@ -269,6 +280,7 @@ type CreateSourceParams struct {
 func (q *Queries) CreateSource(ctx context.Context, arg CreateSourceParams) error {
 	_, err := q.db.ExecContext(ctx, createSource,
 		arg.ID,
+		arg.ApiVersion,
 		arg.DeviceID,
 		arg.Version,
 		arg.Label,
@@ -379,7 +391,7 @@ func (q *Queries) DeleteSubscription(ctx context.Context, id string) error {
 }
 
 const getDevice = `-- name: GetDevice :one
-SELECT id, node_id, version, label, description, tags, type, senders, receivers, controls FROM devices WHERE id = ?1
+SELECT id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls FROM devices WHERE id = ?1
 `
 
 func (q *Queries) GetDevice(ctx context.Context, id string) (Devices, error) {
@@ -387,6 +399,7 @@ func (q *Queries) GetDevice(ctx context.Context, id string) (Devices, error) {
 	var i Devices
 	err := row.Scan(
 		&i.ID,
+		&i.ApiVersion,
 		&i.NodeID,
 		&i.Version,
 		&i.Label,
@@ -428,7 +441,7 @@ func (q *Queries) GetExpiredNodes(ctx context.Context, expirationTime sql.NullTi
 }
 
 const getFlow = `-- name: GetFlow :one
-SELECT id, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows WHERE id = ?1
+SELECT id, api_version, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows WHERE id = ?1
 `
 
 func (q *Queries) GetFlow(ctx context.Context, id string) (Flows, error) {
@@ -436,6 +449,7 @@ func (q *Queries) GetFlow(ctx context.Context, id string) (Flows, error) {
 	var i Flows
 	err := row.Scan(
 		&i.ID,
+		&i.ApiVersion,
 		&i.SourceID,
 		&i.DeviceID,
 		&i.Version,
@@ -459,7 +473,7 @@ func (q *Queries) GetFlow(ctx context.Context, id string) (Flows, error) {
 }
 
 const getNode = `-- name: GetNode :one
-SELECT id, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen FROM nodes WHERE id = ?1
+SELECT id, api_version, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen FROM nodes WHERE id = ?1
 `
 
 func (q *Queries) GetNode(ctx context.Context, id string) (Nodes, error) {
@@ -467,6 +481,7 @@ func (q *Queries) GetNode(ctx context.Context, id string) (Nodes, error) {
 	var i Nodes
 	err := row.Scan(
 		&i.ID,
+		&i.ApiVersion,
 		&i.Version,
 		&i.Label,
 		&i.Description,
@@ -484,7 +499,7 @@ func (q *Queries) GetNode(ctx context.Context, id string) (Nodes, error) {
 }
 
 const getReceiver = `-- name: GetReceiver :one
-SELECT id, device_id, version, label, description, tags, transport, format, caps, interface_bindings, subscription_sender_id, subscription_active FROM receivers WHERE id = ?1
+SELECT id, api_version, device_id, version, label, description, tags, transport, format, caps, interface_bindings, subscription_sender_id, subscription_active FROM receivers WHERE id = ?1
 `
 
 func (q *Queries) GetReceiver(ctx context.Context, id string) (Receivers, error) {
@@ -492,6 +507,7 @@ func (q *Queries) GetReceiver(ctx context.Context, id string) (Receivers, error)
 	var i Receivers
 	err := row.Scan(
 		&i.ID,
+		&i.ApiVersion,
 		&i.DeviceID,
 		&i.Version,
 		&i.Label,
@@ -508,7 +524,7 @@ func (q *Queries) GetReceiver(ctx context.Context, id string) (Receivers, error)
 }
 
 const getSender = `-- name: GetSender :one
-SELECT id, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders WHERE id = ?1
+SELECT id, api_version, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders WHERE id = ?1
 `
 
 func (q *Queries) GetSender(ctx context.Context, id string) (Senders, error) {
@@ -516,6 +532,7 @@ func (q *Queries) GetSender(ctx context.Context, id string) (Senders, error) {
 	var i Senders
 	err := row.Scan(
 		&i.ID,
+		&i.ApiVersion,
 		&i.DeviceID,
 		&i.FlowID,
 		&i.Version,
@@ -532,7 +549,7 @@ func (q *Queries) GetSender(ctx context.Context, id string) (Senders, error) {
 }
 
 const getSource = `-- name: GetSource :one
-SELECT id, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name FROM sources WHERE id = ?1
+SELECT id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name FROM sources WHERE id = ?1
 `
 
 func (q *Queries) GetSource(ctx context.Context, id string) (Sources, error) {
@@ -540,6 +557,7 @@ func (q *Queries) GetSource(ctx context.Context, id string) (Sources, error) {
 	var i Sources
 	err := row.Scan(
 		&i.ID,
+		&i.ApiVersion,
 		&i.DeviceID,
 		&i.Version,
 		&i.Label,
@@ -574,7 +592,7 @@ func (q *Queries) GetSubscription(ctx context.Context, id string) (Subscriptions
 }
 
 const listDevices = `-- name: ListDevices :many
-SELECT id, node_id, version, label, description, tags, type, senders, receivers, controls FROM devices
+SELECT id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls FROM devices
 `
 
 func (q *Queries) ListDevices(ctx context.Context) ([]Devices, error) {
@@ -588,6 +606,7 @@ func (q *Queries) ListDevices(ctx context.Context) ([]Devices, error) {
 		var i Devices
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.NodeID,
 			&i.Version,
 			&i.Label,
@@ -612,7 +631,7 @@ func (q *Queries) ListDevices(ctx context.Context) ([]Devices, error) {
 }
 
 const listDevicesByNode = `-- name: ListDevicesByNode :many
-SELECT id, node_id, version, label, description, tags, type, senders, receivers, controls FROM devices WHERE node_id = ?1
+SELECT id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls FROM devices WHERE node_id = ?1
 `
 
 func (q *Queries) ListDevicesByNode(ctx context.Context, nodeID string) ([]Devices, error) {
@@ -626,6 +645,7 @@ func (q *Queries) ListDevicesByNode(ctx context.Context, nodeID string) ([]Devic
 		var i Devices
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.NodeID,
 			&i.Version,
 			&i.Label,
@@ -650,7 +670,7 @@ func (q *Queries) ListDevicesByNode(ctx context.Context, nodeID string) ([]Devic
 }
 
 const listFlows = `-- name: ListFlows :many
-SELECT id, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows
+SELECT id, api_version, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows
 `
 
 func (q *Queries) ListFlows(ctx context.Context) ([]Flows, error) {
@@ -664,6 +684,7 @@ func (q *Queries) ListFlows(ctx context.Context) ([]Flows, error) {
 		var i Flows
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.SourceID,
 			&i.DeviceID,
 			&i.Version,
@@ -697,7 +718,7 @@ func (q *Queries) ListFlows(ctx context.Context) ([]Flows, error) {
 }
 
 const listFlowsByDevice = `-- name: ListFlowsByDevice :many
-SELECT id, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows WHERE device_id = ?1
+SELECT id, api_version, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows WHERE device_id = ?1
 `
 
 func (q *Queries) ListFlowsByDevice(ctx context.Context, deviceID string) ([]Flows, error) {
@@ -711,6 +732,7 @@ func (q *Queries) ListFlowsByDevice(ctx context.Context, deviceID string) ([]Flo
 		var i Flows
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.SourceID,
 			&i.DeviceID,
 			&i.Version,
@@ -744,7 +766,7 @@ func (q *Queries) ListFlowsByDevice(ctx context.Context, deviceID string) ([]Flo
 }
 
 const listFlowsBySource = `-- name: ListFlowsBySource :many
-SELECT id, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows WHERE source_id = ?1
+SELECT id, api_version, source_id, device_id, version, label, description, tags, format, media_type, sample_rate, bit_depth, did_sdid, grain_rate, frame_width, frame_height, interlace_mode, colorspace, components, transfer_characteristic FROM flows WHERE source_id = ?1
 `
 
 func (q *Queries) ListFlowsBySource(ctx context.Context, sourceID string) ([]Flows, error) {
@@ -758,6 +780,7 @@ func (q *Queries) ListFlowsBySource(ctx context.Context, sourceID string) ([]Flo
 		var i Flows
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.SourceID,
 			&i.DeviceID,
 			&i.Version,
@@ -791,7 +814,7 @@ func (q *Queries) ListFlowsBySource(ctx context.Context, sourceID string) ([]Flo
 }
 
 const listNodes = `-- name: ListNodes :many
-SELECT id, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen FROM nodes
+SELECT id, api_version, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen FROM nodes
 `
 
 func (q *Queries) ListNodes(ctx context.Context) ([]Nodes, error) {
@@ -805,6 +828,7 @@ func (q *Queries) ListNodes(ctx context.Context) ([]Nodes, error) {
 		var i Nodes
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.Version,
 			&i.Label,
 			&i.Description,
@@ -832,7 +856,7 @@ func (q *Queries) ListNodes(ctx context.Context) ([]Nodes, error) {
 }
 
 const listReceivers = `-- name: ListReceivers :many
-SELECT id, device_id, version, label, description, tags, transport, format, caps, interface_bindings, subscription_sender_id, subscription_active FROM receivers
+SELECT id, api_version, device_id, version, label, description, tags, transport, format, caps, interface_bindings, subscription_sender_id, subscription_active FROM receivers
 `
 
 func (q *Queries) ListReceivers(ctx context.Context) ([]Receivers, error) {
@@ -846,6 +870,7 @@ func (q *Queries) ListReceivers(ctx context.Context) ([]Receivers, error) {
 		var i Receivers
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.DeviceID,
 			&i.Version,
 			&i.Label,
@@ -872,7 +897,7 @@ func (q *Queries) ListReceivers(ctx context.Context) ([]Receivers, error) {
 }
 
 const listReceiversByDevice = `-- name: ListReceiversByDevice :many
-SELECT id, device_id, version, label, description, tags, transport, format, caps, interface_bindings, subscription_sender_id, subscription_active FROM receivers WHERE device_id = ?1
+SELECT id, api_version, device_id, version, label, description, tags, transport, format, caps, interface_bindings, subscription_sender_id, subscription_active FROM receivers WHERE device_id = ?1
 `
 
 func (q *Queries) ListReceiversByDevice(ctx context.Context, deviceID string) ([]Receivers, error) {
@@ -886,6 +911,7 @@ func (q *Queries) ListReceiversByDevice(ctx context.Context, deviceID string) ([
 		var i Receivers
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.DeviceID,
 			&i.Version,
 			&i.Label,
@@ -912,7 +938,7 @@ func (q *Queries) ListReceiversByDevice(ctx context.Context, deviceID string) ([
 }
 
 const listSenders = `-- name: ListSenders :many
-SELECT id, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders
+SELECT id, api_version, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders
 `
 
 func (q *Queries) ListSenders(ctx context.Context) ([]Senders, error) {
@@ -926,6 +952,7 @@ func (q *Queries) ListSenders(ctx context.Context) ([]Senders, error) {
 		var i Senders
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.DeviceID,
 			&i.FlowID,
 			&i.Version,
@@ -952,7 +979,7 @@ func (q *Queries) ListSenders(ctx context.Context) ([]Senders, error) {
 }
 
 const listSendersByDevice = `-- name: ListSendersByDevice :many
-SELECT id, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders WHERE device_id = ?1
+SELECT id, api_version, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders WHERE device_id = ?1
 `
 
 func (q *Queries) ListSendersByDevice(ctx context.Context, deviceID string) ([]Senders, error) {
@@ -966,6 +993,7 @@ func (q *Queries) ListSendersByDevice(ctx context.Context, deviceID string) ([]S
 		var i Senders
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.DeviceID,
 			&i.FlowID,
 			&i.Version,
@@ -992,7 +1020,7 @@ func (q *Queries) ListSendersByDevice(ctx context.Context, deviceID string) ([]S
 }
 
 const listSendersByFlow = `-- name: ListSendersByFlow :many
-SELECT id, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders WHERE flow_id = ?1
+SELECT id, api_version, device_id, flow_id, version, label, description, tags, transport, manifest_href, interface_bindings, subscription_receiver_id, subscription_active FROM senders WHERE flow_id = ?1
 `
 
 func (q *Queries) ListSendersByFlow(ctx context.Context, flowID sql.NullString) ([]Senders, error) {
@@ -1006,6 +1034,7 @@ func (q *Queries) ListSendersByFlow(ctx context.Context, flowID sql.NullString) 
 		var i Senders
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.DeviceID,
 			&i.FlowID,
 			&i.Version,
@@ -1032,7 +1061,7 @@ func (q *Queries) ListSendersByFlow(ctx context.Context, flowID sql.NullString) 
 }
 
 const listSources = `-- name: ListSources :many
-SELECT id, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name FROM sources
+SELECT id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name FROM sources
 `
 
 func (q *Queries) ListSources(ctx context.Context) ([]Sources, error) {
@@ -1046,6 +1075,7 @@ func (q *Queries) ListSources(ctx context.Context) ([]Sources, error) {
 		var i Sources
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.DeviceID,
 			&i.Version,
 			&i.Label,
@@ -1071,7 +1101,7 @@ func (q *Queries) ListSources(ctx context.Context) ([]Sources, error) {
 }
 
 const listSourcesByDevice = `-- name: ListSourcesByDevice :many
-SELECT id, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name FROM sources WHERE device_id = ?1
+SELECT id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name FROM sources WHERE device_id = ?1
 `
 
 func (q *Queries) ListSourcesByDevice(ctx context.Context, deviceID string) ([]Sources, error) {
@@ -1085,6 +1115,7 @@ func (q *Queries) ListSourcesByDevice(ctx context.Context, deviceID string) ([]S
 		var i Sources
 		if err := rows.Scan(
 			&i.ID,
+			&i.ApiVersion,
 			&i.DeviceID,
 			&i.Version,
 			&i.Label,
@@ -1413,19 +1444,20 @@ func (q *Queries) UpdateSource(ctx context.Context, arg UpdateSourceParams) erro
 
 const upsertDevice = `-- name: UpsertDevice :exec
 INSERT INTO devices (
-    id, node_id, version, label, description, tags, type, senders, receivers, controls
+    id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9, ?10
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10, ?11
 )
 ON CONFLICT(id) DO UPDATE SET
-    node_id = excluded.node_id, version = excluded.version, label = excluded.label,
+    api_version = excluded.api_version, node_id = excluded.node_id, version = excluded.version, label = excluded.label,
     description = excluded.description, tags = excluded.tags, type = excluded.type,
     senders = excluded.senders, receivers = excluded.receivers, controls = excluded.controls
 `
 
 type UpsertDeviceParams struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	NodeID      string          `json:"node_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
@@ -1440,6 +1472,7 @@ type UpsertDeviceParams struct {
 func (q *Queries) UpsertDevice(ctx context.Context, arg UpsertDeviceParams) error {
 	_, err := q.db.ExecContext(ctx, upsertDevice,
 		arg.ID,
+		arg.ApiVersion,
 		arg.NodeID,
 		arg.Version,
 		arg.Label,
@@ -1455,18 +1488,18 @@ func (q *Queries) UpsertDevice(ctx context.Context, arg UpsertDeviceParams) erro
 
 const upsertFlow = `-- name: UpsertFlow :exec
 INSERT INTO flows (
-    id, source_id, device_id, version, label, description, tags, format, media_type,
+    id, api_version, source_id, device_id, version, label, description, tags, format, media_type,
     sample_rate, bit_depth, DID_SDID, grain_rate, frame_width, frame_height,
     interlace_mode, colorspace, components, transfer_characteristic
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9,
-    ?10, ?11, ?12, ?13,
-    ?14, ?15, ?16, ?17,
-    ?18, ?19
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10,
+    ?11, ?12, ?13, ?14,
+    ?15, ?16, ?17, ?18,
+    ?19, ?20
 )
 ON CONFLICT(id) DO UPDATE SET
-    source_id = excluded.source_id, device_id = excluded.device_id, version = excluded.version,
+    api_version = excluded.api_version, source_id = excluded.source_id, device_id = excluded.device_id, version = excluded.version,
     label = excluded.label, description = excluded.description, tags = excluded.tags,
     format = excluded.format, media_type = excluded.media_type, sample_rate = excluded.sample_rate,
     bit_depth = excluded.bit_depth, DID_SDID = excluded.DID_SDID, grain_rate = excluded.grain_rate,
@@ -1477,6 +1510,7 @@ ON CONFLICT(id) DO UPDATE SET
 
 type UpsertFlowParams struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	SourceID               string          `json:"source_id"`
 	DeviceID               string          `json:"device_id"`
 	Version                string          `json:"version"`
@@ -1500,6 +1534,7 @@ type UpsertFlowParams struct {
 func (q *Queries) UpsertFlow(ctx context.Context, arg UpsertFlowParams) error {
 	_, err := q.db.ExecContext(ctx, upsertFlow,
 		arg.ID,
+		arg.ApiVersion,
 		arg.SourceID,
 		arg.DeviceID,
 		arg.Version,
@@ -1524,14 +1559,14 @@ func (q *Queries) UpsertFlow(ctx context.Context, arg UpsertFlowParams) error {
 
 const upsertNode = `-- name: UpsertNode :exec
 INSERT INTO nodes (
-    id, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
+    id, api_version, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9, ?10,
-    ?11, ?12, ?13
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10, ?11,
+    ?12, ?13, ?14
 )
 ON CONFLICT(id) DO UPDATE SET
-    version = excluded.version, label = excluded.label, description = excluded.description,
+    api_version = excluded.api_version, version = excluded.version, label = excluded.label, description = excluded.description,
     tags = excluded.tags, href = excluded.href, hostname = excluded.hostname,
     api = excluded.api, caps = excluded.caps, services = excluded.services,
     clocks = excluded.clocks, interfaces = excluded.interfaces, last_seen = excluded.last_seen
@@ -1539,6 +1574,7 @@ ON CONFLICT(id) DO UPDATE SET
 
 type UpsertNodeParams struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
 	Description string          `json:"description"`
@@ -1556,6 +1592,7 @@ type UpsertNodeParams struct {
 func (q *Queries) UpsertNode(ctx context.Context, arg UpsertNodeParams) error {
 	_, err := q.db.ExecContext(ctx, upsertNode,
 		arg.ID,
+		arg.ApiVersion,
 		arg.Version,
 		arg.Label,
 		arg.Description,
@@ -1574,15 +1611,15 @@ func (q *Queries) UpsertNode(ctx context.Context, arg UpsertNodeParams) error {
 
 const upsertReceiver = `-- name: UpsertReceiver :exec
 INSERT INTO receivers (
-    id, device_id, version, label, description, tags, transport, format, caps,
+    id, api_version, device_id, version, label, description, tags, transport, format, caps,
     interface_bindings, subscription_sender_id, subscription_active
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9,
-    ?10, ?11, ?12
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10,
+    ?11, ?12, ?13
 )
 ON CONFLICT(id) DO UPDATE SET
-    device_id = excluded.device_id, version = excluded.version, label = excluded.label,
+    api_version = excluded.api_version, device_id = excluded.device_id, version = excluded.version, label = excluded.label,
     description = excluded.description, tags = excluded.tags, transport = excluded.transport,
     format = excluded.format, caps = excluded.caps, interface_bindings = excluded.interface_bindings,
     subscription_sender_id = excluded.subscription_sender_id,
@@ -1591,6 +1628,7 @@ ON CONFLICT(id) DO UPDATE SET
 
 type UpsertReceiverParams struct {
 	ID                   string          `json:"id"`
+	ApiVersion           string          `json:"api_version"`
 	DeviceID             string          `json:"device_id"`
 	Version              string          `json:"version"`
 	Label                string          `json:"label"`
@@ -1607,6 +1645,7 @@ type UpsertReceiverParams struct {
 func (q *Queries) UpsertReceiver(ctx context.Context, arg UpsertReceiverParams) error {
 	_, err := q.db.ExecContext(ctx, upsertReceiver,
 		arg.ID,
+		arg.ApiVersion,
 		arg.DeviceID,
 		arg.Version,
 		arg.Label,
@@ -1624,15 +1663,15 @@ func (q *Queries) UpsertReceiver(ctx context.Context, arg UpsertReceiverParams) 
 
 const upsertSender = `-- name: UpsertSender :exec
 INSERT INTO senders (
-    id, device_id, flow_id, version, label, description, tags, transport,
+    id, api_version, device_id, flow_id, version, label, description, tags, transport,
     manifest_href, interface_bindings, subscription_receiver_id, subscription_active
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9,
-    ?10, ?11, ?12
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10,
+    ?11, ?12, ?13
 )
 ON CONFLICT(id) DO UPDATE SET
-    device_id = excluded.device_id, flow_id = excluded.flow_id, version = excluded.version,
+    api_version = excluded.api_version, device_id = excluded.device_id, flow_id = excluded.flow_id, version = excluded.version,
     label = excluded.label, description = excluded.description, tags = excluded.tags,
     transport = excluded.transport, manifest_href = excluded.manifest_href,
     interface_bindings = excluded.interface_bindings,
@@ -1642,6 +1681,7 @@ ON CONFLICT(id) DO UPDATE SET
 
 type UpsertSenderParams struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	DeviceID               string          `json:"device_id"`
 	FlowID                 sql.NullString  `json:"flow_id"`
 	Version                string          `json:"version"`
@@ -1658,6 +1698,7 @@ type UpsertSenderParams struct {
 func (q *Queries) UpsertSender(ctx context.Context, arg UpsertSenderParams) error {
 	_, err := q.db.ExecContext(ctx, upsertSender,
 		arg.ID,
+		arg.ApiVersion,
 		arg.DeviceID,
 		arg.FlowID,
 		arg.Version,
@@ -1675,13 +1716,13 @@ func (q *Queries) UpsertSender(ctx context.Context, arg UpsertSenderParams) erro
 
 const upsertSource = `-- name: UpsertSource :exec
 INSERT INTO sources (
-    id, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
+    id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
 ) VALUES (
-    ?1, ?2, ?3, ?4, ?5,
-    ?6, ?7, ?8, ?9, ?10, ?11
+    ?1, ?2, ?3, ?4, ?5, ?6,
+    ?7, ?8, ?9, ?10, ?11, ?12
 )
 ON CONFLICT(id) DO UPDATE SET
-    device_id = excluded.device_id, version = excluded.version, label = excluded.label,
+    api_version = excluded.api_version, device_id = excluded.device_id, version = excluded.version, label = excluded.label,
     description = excluded.description, tags = excluded.tags, grain_rate = excluded.grain_rate,
     format = excluded.format, caps = excluded.caps, parents = excluded.parents,
     clock_name = excluded.clock_name
@@ -1689,6 +1730,7 @@ ON CONFLICT(id) DO UPDATE SET
 
 type UpsertSourceParams struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	DeviceID    string          `json:"device_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
@@ -1704,6 +1746,7 @@ type UpsertSourceParams struct {
 func (q *Queries) UpsertSource(ctx context.Context, arg UpsertSourceParams) error {
 	_, err := q.db.ExecContext(ctx, upsertSource,
 		arg.ID,
+		arg.ApiVersion,
 		arg.DeviceID,
 		arg.Version,
 		arg.Label,

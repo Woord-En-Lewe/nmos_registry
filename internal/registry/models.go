@@ -18,6 +18,7 @@ const (
 
 type Node struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
 	Description string          `json:"description"`
@@ -34,6 +35,7 @@ type Node struct {
 
 type Device struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	NodeID      string          `json:"node_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
@@ -47,6 +49,7 @@ type Device struct {
 
 type Source struct {
 	ID          string          `json:"id"`
+	ApiVersion  string          `json:"api_version"`
 	DeviceID    string          `json:"device_id"`
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
@@ -61,6 +64,7 @@ type Source struct {
 
 type Flow struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	SourceID               string          `json:"source_id"`
 	DeviceID               string          `json:"device_id"`
 	Version                string          `json:"version"`
@@ -83,6 +87,7 @@ type Flow struct {
 
 type Sender struct {
 	ID                     string          `json:"id"`
+	ApiVersion             string          `json:"api_version"`
 	DeviceID               string          `json:"device_id"`
 	FlowID                 *string         `json:"flow_id"`
 	Version                string          `json:"version"`
@@ -98,6 +103,7 @@ type Sender struct {
 
 type Receiver struct {
 	ID                   string          `json:"id"`
+	ApiVersion           string          `json:"api_version"`
 	DeviceID             string          `json:"device_id"`
 	Version              string          `json:"version"`
 	Label                string          `json:"label"`

@@ -1,7 +1,7 @@
 package mdns
 
 const (
-	RegistrationServiceType = "_nmos-registration._tcp"
+	RegistrationServiceType = "_nmos-register._tcp"
 	QueryServiceType        = "_nmos-query._tcp"
 	RegistryServiceType     = "_nmos-registry._tcp"
 	Domain                  = "local"
