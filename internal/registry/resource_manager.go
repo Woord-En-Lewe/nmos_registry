@@ -17,6 +17,13 @@ func NewResourceManager(repo IRepository) *ResourceManager {
 
 // Node operations
 func (m *ResourceManager) RegisterNode(ctx context.Context, node Node) error {
+	exists, err := m.repo.IDExistsAsOtherType(ctx, node.ID, ResourceTypeNode)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return NewValidationErrorf("id %s already exists as a different resource type", node.ID)
+	}
 	return m.repo.UpsertNode(ctx, node)
 }
 
@@ -32,7 +39,22 @@ func (m *ResourceManager) UnregisterNode(ctx context.Context, id string) error {
 
 // Device operations
 func (m *ResourceManager) RegisterDevice(ctx context.Context, device Device) error {
-	_, err := m.repo.GetNode(ctx, device.NodeID)
+	exists, err := m.repo.IDExistsAsOtherType(ctx, device.ID, ResourceTypeDevice)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return NewValidationErrorf("id %s already exists as a different resource type", device.ID)
+	}
+
+	existingDevice, err := m.repo.GetDevice(ctx, device.ID)
+	if err == nil {
+		if existingDevice.NodeID != device.NodeID {
+			return NewValidationErrorf("parent node_id cannot be modified on update")
+		}
+	}
+
+	_, err = m.repo.GetNode(ctx, device.NodeID)
 	if err != nil {
 		if errors.Is(err, ErrResourceNotFound) {
 			return NewValidationErrorf("parent node %s not found", device.NodeID)
@@ -72,7 +94,22 @@ func (m *ResourceManager) UnregisterDevice(ctx context.Context, id string) error
 
 // Source operations
 func (m *ResourceManager) RegisterSource(ctx context.Context, source Source) error {
-	_, err := m.repo.GetDevice(ctx, source.DeviceID)
+	exists, err := m.repo.IDExistsAsOtherType(ctx, source.ID, ResourceTypeSource)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return NewValidationErrorf("id %s already exists as a different resource type", source.ID)
+	}
+
+	existingSource, err := m.repo.GetSource(ctx, source.ID)
+	if err == nil {
+		if existingSource.DeviceID != source.DeviceID {
+			return NewValidationErrorf("parent device_id cannot be modified on update")
+		}
+	}
+
+	_, err = m.repo.GetDevice(ctx, source.DeviceID)
 	if err != nil {
 		if errors.Is(err, ErrResourceNotFound) {
 			return NewValidationErrorf("parent device %s not found", source.DeviceID)
@@ -94,7 +131,25 @@ func (m *ResourceManager) UnregisterSource(ctx context.Context, id string) error
 
 // Flow operations
 func (m *ResourceManager) RegisterFlow(ctx context.Context, flow Flow) error {
-	_, err := m.repo.GetSource(ctx, flow.SourceID)
+	exists, err := m.repo.IDExistsAsOtherType(ctx, flow.ID, ResourceTypeFlow)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return NewValidationErrorf("id %s already exists as a different resource type", flow.ID)
+	}
+
+	existingFlow, err := m.repo.GetFlow(ctx, flow.ID)
+	if err == nil {
+		if existingFlow.SourceID != flow.SourceID {
+			return NewValidationErrorf("parent source_id cannot be modified on update")
+		}
+		if existingFlow.DeviceID != flow.DeviceID {
+			return NewValidationErrorf("parent device_id cannot be modified on update")
+		}
+	}
+
+	_, err = m.repo.GetSource(ctx, flow.SourceID)
 	if err != nil {
 		if errors.Is(err, ErrResourceNotFound) {
 			return NewValidationErrorf("parent source %s not found", flow.SourceID)
@@ -117,7 +172,22 @@ func (m *ResourceManager) UnregisterFlow(ctx context.Context, id string) error {
 
 // Sender operations
 func (m *ResourceManager) RegisterSender(ctx context.Context, sender Sender) error {
-	_, err := m.repo.GetDevice(ctx, sender.DeviceID)
+	exists, err := m.repo.IDExistsAsOtherType(ctx, sender.ID, ResourceTypeSender)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return NewValidationErrorf("id %s already exists as a different resource type", sender.ID)
+	}
+
+	existingSender, err := m.repo.GetSender(ctx, sender.ID)
+	if err == nil {
+		if existingSender.DeviceID != sender.DeviceID {
+			return NewValidationErrorf("parent device_id cannot be modified on update")
+		}
+	}
+
+	_, err = m.repo.GetDevice(ctx, sender.DeviceID)
 	if err != nil {
 		if errors.Is(err, ErrResourceNotFound) {
 			return NewValidationErrorf("parent device %s not found", sender.DeviceID)
@@ -142,7 +212,22 @@ func (m *ResourceManager) UnregisterSender(ctx context.Context, id string) error
 
 // Receiver operations
 func (m *ResourceManager) RegisterReceiver(ctx context.Context, receiver Receiver) error {
-	_, err := m.repo.GetDevice(ctx, receiver.DeviceID)
+	exists, err := m.repo.IDExistsAsOtherType(ctx, receiver.ID, ResourceTypeReceiver)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return NewValidationErrorf("id %s already exists as a different resource type", receiver.ID)
+	}
+
+	existingReceiver, err := m.repo.GetReceiver(ctx, receiver.ID)
+	if err == nil {
+		if existingReceiver.DeviceID != receiver.DeviceID {
+			return NewValidationErrorf("parent device_id cannot be modified on update")
+		}
+	}
+
+	_, err = m.repo.GetDevice(ctx, receiver.DeviceID)
 	if err != nil {
 		if errors.Is(err, ErrResourceNotFound) {
 			return NewValidationErrorf("parent device %s not found", receiver.DeviceID)

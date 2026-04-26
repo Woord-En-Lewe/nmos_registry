@@ -34,6 +34,10 @@ func (m *mockRepository) UpdateNodeHealth(ctx context.Context, id string) error 
 	return nil
 }
 
+func (m *mockRepository) IDExistsAsOtherType(ctx context.Context, id string, excludeType registry.ResourceType) (bool, error) {
+	return false, nil
+}
+
 func (m *mockRepository) ListNodes(ctx context.Context) ([]registry.Node, error) {
 	nodes := make([]registry.Node, 0, len(m.nodes))
 	for _, n := range m.nodes {

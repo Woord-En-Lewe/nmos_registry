@@ -43,6 +43,9 @@ type IRepository interface {
 	DeleteReceiver(ctx context.Context, id string) error
 	GetReceiver(ctx context.Context, id string) (Receiver, error)
 	ListReceivers(ctx context.Context) ([]Receiver, error)
+
+	// ID collision check - returns true if ID exists as a different resource type
+	IDExistsAsOtherType(ctx context.Context, id string, excludeType ResourceType) (bool, error)
 }
 
 type INotifier interface {

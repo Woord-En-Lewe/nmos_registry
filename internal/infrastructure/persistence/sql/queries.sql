@@ -309,3 +309,21 @@ SELECT * FROM subscriptions;
 
 -- name: DeleteSubscription :exec
 DELETE FROM subscriptions WHERE id = sqlc.arg(id);
+
+-- name: IDExistsInNodes :one
+SELECT COUNT(*) FROM nodes WHERE id = sqlc.arg(id);
+
+-- name: IDExistsInDevices :one
+SELECT COUNT(*) FROM devices WHERE id = sqlc.arg(id);
+
+-- name: IDExistsInSources :one
+SELECT COUNT(*) FROM sources WHERE id = sqlc.arg(id);
+
+-- name: IDExistsInFlows :one
+SELECT COUNT(*) FROM flows WHERE id = sqlc.arg(id);
+
+-- name: IDExistsInSenders :one
+SELECT COUNT(*) FROM senders WHERE id = sqlc.arg(id);
+
+-- name: IDExistsInReceivers :one
+SELECT COUNT(*) FROM receivers WHERE id = sqlc.arg(id);

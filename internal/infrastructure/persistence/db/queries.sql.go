@@ -591,6 +591,72 @@ func (q *Queries) GetSubscription(ctx context.Context, id string) (Subscriptions
 	return i, err
 }
 
+const iDExistsInDevices = `-- name: IDExistsInDevices :one
+SELECT COUNT(*) FROM devices WHERE id = ?1
+`
+
+func (q *Queries) IDExistsInDevices(ctx context.Context, id string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, iDExistsInDevices, id)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const iDExistsInFlows = `-- name: IDExistsInFlows :one
+SELECT COUNT(*) FROM flows WHERE id = ?1
+`
+
+func (q *Queries) IDExistsInFlows(ctx context.Context, id string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, iDExistsInFlows, id)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const iDExistsInNodes = `-- name: IDExistsInNodes :one
+SELECT COUNT(*) FROM nodes WHERE id = ?1
+`
+
+func (q *Queries) IDExistsInNodes(ctx context.Context, id string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, iDExistsInNodes, id)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const iDExistsInReceivers = `-- name: IDExistsInReceivers :one
+SELECT COUNT(*) FROM receivers WHERE id = ?1
+`
+
+func (q *Queries) IDExistsInReceivers(ctx context.Context, id string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, iDExistsInReceivers, id)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const iDExistsInSenders = `-- name: IDExistsInSenders :one
+SELECT COUNT(*) FROM senders WHERE id = ?1
+`
+
+func (q *Queries) IDExistsInSenders(ctx context.Context, id string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, iDExistsInSenders, id)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const iDExistsInSources = `-- name: IDExistsInSources :one
+SELECT COUNT(*) FROM sources WHERE id = ?1
+`
+
+func (q *Queries) IDExistsInSources(ctx context.Context, id string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, iDExistsInSources, id)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const listDevices = `-- name: ListDevices :many
 SELECT id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls FROM devices
 `

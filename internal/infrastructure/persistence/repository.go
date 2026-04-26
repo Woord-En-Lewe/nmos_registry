@@ -575,3 +575,220 @@ func fromNullBool(nb sql.NullBool) *bool {
 	}
 	return &nb.Bool
 }
+
+func (r *SQLiteRepository) IDExistsAsOtherType(ctx context.Context, id string, excludeType registry.ResourceType) (bool, error) {
+	switch excludeType {
+	case registry.ResourceTypeNode:
+		count, err := r.queries.IDExistsInDevices(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSources(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInFlows(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSenders(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInReceivers(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		return count > 0, nil
+
+	case registry.ResourceTypeDevice:
+		count, err := r.queries.IDExistsInNodes(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSources(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInFlows(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSenders(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInReceivers(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		return count > 0, nil
+
+	case registry.ResourceTypeSource:
+		count, err := r.queries.IDExistsInNodes(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInDevices(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInFlows(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSenders(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInReceivers(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		return count > 0, nil
+
+	case registry.ResourceTypeFlow:
+		count, err := r.queries.IDExistsInNodes(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInDevices(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSources(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSenders(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInReceivers(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		return count > 0, nil
+
+	case registry.ResourceTypeSender:
+		count, err := r.queries.IDExistsInNodes(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInDevices(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSources(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInFlows(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInReceivers(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		return count > 0, nil
+
+	case registry.ResourceTypeReceiver:
+		count, err := r.queries.IDExistsInNodes(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInDevices(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSources(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInFlows(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		if count > 0 {
+			return true, nil
+		}
+		count, err = r.queries.IDExistsInSenders(ctx, id)
+		if err != nil {
+			return false, err
+		}
+		return count > 0, nil
+
+	default:
+		return false, nil
+	}
+}

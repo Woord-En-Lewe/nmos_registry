@@ -300,3 +300,181 @@ func (r *InMemoryRepository) DeleteSubscription(ctx context.Context, id string) 
 	delete(r.subscriptions, id)
 	return nil
 }
+
+func (r *InMemoryRepository) IDExistsAsOtherType(ctx context.Context, id string, excludeType ResourceType) (bool, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	switch excludeType {
+	case ResourceTypeNode:
+		for _, d := range r.devices {
+			if d.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.sources {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, f := range r.flows {
+			if f.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.senders {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, rec := range r.receivers {
+			if rec.ID == id {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	case ResourceTypeDevice:
+		for _, n := range r.nodes {
+			if n.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.sources {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, f := range r.flows {
+			if f.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.senders {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, rec := range r.receivers {
+			if rec.ID == id {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	case ResourceTypeSource:
+		for _, n := range r.nodes {
+			if n.ID == id {
+				return true, nil
+			}
+		}
+		for _, d := range r.devices {
+			if d.ID == id {
+				return true, nil
+			}
+		}
+		for _, f := range r.flows {
+			if f.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.senders {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, rec := range r.receivers {
+			if rec.ID == id {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	case ResourceTypeFlow:
+		for _, n := range r.nodes {
+			if n.ID == id {
+				return true, nil
+			}
+		}
+		for _, d := range r.devices {
+			if d.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.sources {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.senders {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, rec := range r.receivers {
+			if rec.ID == id {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	case ResourceTypeSender:
+		for _, n := range r.nodes {
+			if n.ID == id {
+				return true, nil
+			}
+		}
+		for _, d := range r.devices {
+			if d.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.sources {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, f := range r.flows {
+			if f.ID == id {
+				return true, nil
+			}
+		}
+		for _, rec := range r.receivers {
+			if rec.ID == id {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	case ResourceTypeReceiver:
+		for _, n := range r.nodes {
+			if n.ID == id {
+				return true, nil
+			}
+		}
+		for _, d := range r.devices {
+			if d.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.sources {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		for _, f := range r.flows {
+			if f.ID == id {
+				return true, nil
+			}
+		}
+		for _, s := range r.senders {
+			if s.ID == id {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	default:
+		return false, nil
+	}
+}
