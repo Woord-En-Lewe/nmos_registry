@@ -2,6 +2,7 @@ package transporthttp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -129,7 +130,12 @@ func (h *RegistrationHandlers) RegisterResource(w http.ResponseWriter, r *http.R
 	}
 
 	if err != nil {
-		h.writeError(w, http.StatusInternalServerError, err.Error(), "")
+		var validationErr *registry.ValidationError
+		if errors.As(err, &validationErr) {
+			h.writeError(w, http.StatusBadRequest, err.Error(), "")
+		} else {
+			h.writeError(w, http.StatusInternalServerError, err.Error(), "")
+		}
 		return
 	}
 

@@ -2,7 +2,7 @@ package registry
 
 import (
 	"context"
-	"fmt"
+	"errors"
 )
 
 type ResourceManager struct {
@@ -17,8 +17,6 @@ func NewResourceManager(repo IRepository) *ResourceManager {
 
 // Node operations
 func (m *ResourceManager) RegisterNode(ctx context.Context, node Node) error {
-	// IS-04: When a node registers or updates, last_seen should be updated.
-	// The repository implementation should handle this (e.g., CURRENT_TIMESTAMP in SQLite).
 	return m.repo.UpsertNode(ctx, node)
 }
 
@@ -34,10 +32,12 @@ func (m *ResourceManager) UnregisterNode(ctx context.Context, id string) error {
 
 // Device operations
 func (m *ResourceManager) RegisterDevice(ctx context.Context, device Device) error {
-	// IS-04: Ensure parent Node exists
 	_, err := m.repo.GetNode(ctx, device.NodeID)
 	if err != nil {
-		return fmt.Errorf("parent node %s not found: %w", device.NodeID, err)
+		if errors.Is(err, ErrResourceNotFound) {
+			return NewValidationErrorf("parent node %s not found", device.NodeID)
+		}
+		return err
 	}
 	return m.repo.UpsertDevice(ctx, device)
 }
@@ -72,10 +72,12 @@ func (m *ResourceManager) UnregisterDevice(ctx context.Context, id string) error
 
 // Source operations
 func (m *ResourceManager) RegisterSource(ctx context.Context, source Source) error {
-	// IS-04: Ensure parent Device exists
 	_, err := m.repo.GetDevice(ctx, source.DeviceID)
 	if err != nil {
-		return fmt.Errorf("parent device %s not found: %w", source.DeviceID, err)
+		if errors.Is(err, ErrResourceNotFound) {
+			return NewValidationErrorf("parent device %s not found", source.DeviceID)
+		}
+		return err
 	}
 	return m.repo.UpsertSource(ctx, source)
 }
@@ -92,15 +94,19 @@ func (m *ResourceManager) UnregisterSource(ctx context.Context, id string) error
 
 // Flow operations
 func (m *ResourceManager) RegisterFlow(ctx context.Context, flow Flow) error {
-	// IS-04: Ensure parent Source exists
 	_, err := m.repo.GetSource(ctx, flow.SourceID)
 	if err != nil {
-		return fmt.Errorf("parent source %s not found: %w", flow.SourceID, err)
+		if errors.Is(err, ErrResourceNotFound) {
+			return NewValidationErrorf("parent source %s not found", flow.SourceID)
+		}
+		return err
 	}
-	// IS-04: Ensure parent Device exists
 	_, err = m.repo.GetDevice(ctx, flow.DeviceID)
 	if err != nil {
-		return fmt.Errorf("parent device %s not found: %w", flow.DeviceID, err)
+		if errors.Is(err, ErrResourceNotFound) {
+			return NewValidationErrorf("parent device %s not found", flow.DeviceID)
+		}
+		return err
 	}
 	return m.repo.UpsertFlow(ctx, flow)
 }
@@ -111,16 +117,20 @@ func (m *ResourceManager) UnregisterFlow(ctx context.Context, id string) error {
 
 // Sender operations
 func (m *ResourceManager) RegisterSender(ctx context.Context, sender Sender) error {
-	// IS-04: Ensure parent Device exists
 	_, err := m.repo.GetDevice(ctx, sender.DeviceID)
 	if err != nil {
-		return fmt.Errorf("parent device %s not found: %w", sender.DeviceID, err)
+		if errors.Is(err, ErrResourceNotFound) {
+			return NewValidationErrorf("parent device %s not found", sender.DeviceID)
+		}
+		return err
 	}
-	// Note: FlowID is optional for Senders in some versions/cases, but usually points to a Flow.
 	if sender.FlowID != nil {
 		_, err = m.repo.GetFlow(ctx, *sender.FlowID)
 		if err != nil {
-			return fmt.Errorf("parent flow %s not found: %w", *sender.FlowID, err)
+			if errors.Is(err, ErrResourceNotFound) {
+				return NewValidationErrorf("parent flow %s not found", *sender.FlowID)
+			}
+			return err
 		}
 	}
 	return m.repo.UpsertSender(ctx, sender)
@@ -132,10 +142,12 @@ func (m *ResourceManager) UnregisterSender(ctx context.Context, id string) error
 
 // Receiver operations
 func (m *ResourceManager) RegisterReceiver(ctx context.Context, receiver Receiver) error {
-	// IS-04: Ensure parent Device exists
 	_, err := m.repo.GetDevice(ctx, receiver.DeviceID)
 	if err != nil {
-		return fmt.Errorf("parent device %s not found: %w", receiver.DeviceID, err)
+		if errors.Is(err, ErrResourceNotFound) {
+			return NewValidationErrorf("parent device %s not found", receiver.DeviceID)
+		}
+		return err
 	}
 	return m.repo.UpsertReceiver(ctx, receiver)
 }

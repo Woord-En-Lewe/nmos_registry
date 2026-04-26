@@ -53,7 +53,7 @@ func (r *InMemoryRepository) GetNode(ctx context.Context, id string) (Node, erro
 	defer r.mu.RUnlock()
 	node, ok := r.nodes[id]
 	if !ok {
-		return Node{}, fmt.Errorf("node not found: %s", id)
+		return Node{}, ErrResourceNotFound
 	}
 	return node, nil
 }
@@ -112,7 +112,7 @@ func (r *InMemoryRepository) GetDevice(ctx context.Context, id string) (Device, 
 	defer r.mu.RUnlock()
 	device, ok := r.devices[id]
 	if !ok {
-		return Device{}, fmt.Errorf("device not found: %s", id)
+		return Device{}, ErrResourceNotFound
 	}
 	return device, nil
 }
@@ -147,7 +147,7 @@ func (r *InMemoryRepository) GetSource(ctx context.Context, id string) (Source, 
 	defer r.mu.RUnlock()
 	source, ok := r.sources[id]
 	if !ok {
-		return Source{}, fmt.Errorf("source not found: %s", id)
+		return Source{}, ErrResourceNotFound
 	}
 	return source, nil
 }
@@ -182,7 +182,7 @@ func (r *InMemoryRepository) GetFlow(ctx context.Context, id string) (Flow, erro
 	defer r.mu.RUnlock()
 	flow, ok := r.flows[id]
 	if !ok {
-		return Flow{}, fmt.Errorf("flow not found: %s", id)
+		return Flow{}, ErrResourceNotFound
 	}
 	return flow, nil
 }
@@ -217,7 +217,7 @@ func (r *InMemoryRepository) GetSender(ctx context.Context, id string) (Sender, 
 	defer r.mu.RUnlock()
 	sender, ok := r.senders[id]
 	if !ok {
-		return Sender{}, fmt.Errorf("sender not found: %s", id)
+		return Sender{}, ErrResourceNotFound
 	}
 	return sender, nil
 }
@@ -252,7 +252,7 @@ func (r *InMemoryRepository) GetReceiver(ctx context.Context, id string) (Receiv
 	defer r.mu.RUnlock()
 	receiver, ok := r.receivers[id]
 	if !ok {
-		return Receiver{}, fmt.Errorf("receiver not found: %s", id)
+		return Receiver{}, ErrResourceNotFound
 	}
 	return receiver, nil
 }
