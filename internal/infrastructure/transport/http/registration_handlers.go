@@ -1,9 +1,11 @@
 package transporthttp
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -36,111 +38,110 @@ type registrationRequest struct {
 
 func (h *RegistrationHandlers) RegisterResource(w http.ResponseWriter, r *http.Request) {
 	var req registrationRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.writeError(w, http.StatusBadRequest, "invalid request body", err.Error())
+	raw_data, err := io.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	byte_reader := bytes.NewReader(raw_data)
+	if err := json.NewDecoder(byte_reader).Decode(&req); err != nil {
+		h.writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	ctx := r.Context()
-	var err error
-	var resourceID string
 
 	switch req.Type {
 	case registry.ResourceTypeNode:
 		var node registry.Node
-		if err = json.Unmarshal(req.Data, &node); err == nil {
-			resourceID = node.ID
-			exists, _ := h.resourceManager.NodeExists(ctx, node.ID)
-			err = h.resourceManager.RegisterNode(ctx, node)
-			if err == nil && !exists {
-				w.Header().Set("Location", h.resourcePath(req.Type, resourceID))
-				w.WriteHeader(http.StatusCreated)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
+		if err := json.Unmarshal(req.Data, &node); err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid node data")
+			return
 		}
+		h.registerNode(ctx, w, req.Type, node)
 	case registry.ResourceTypeDevice:
 		var device registry.Device
-		if err = json.Unmarshal(req.Data, &device); err == nil {
-			resourceID = device.ID
-			exists, _ := h.resourceManager.DeviceExists(ctx, device.ID)
-			err = h.resourceManager.RegisterDevice(ctx, device)
-			if err == nil && !exists {
-				w.Header().Set("Location", h.resourcePath(req.Type, resourceID))
-				w.WriteHeader(http.StatusCreated)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
+		if err := json.Unmarshal(req.Data, &device); err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid device data")
+			return
 		}
+		h.registerDevice(ctx, w, req.Type, device)
 	case registry.ResourceTypeSource:
 		var source registry.Source
-		if err = json.Unmarshal(req.Data, &source); err == nil {
-			resourceID = source.ID
-			exists, _ := h.resourceManager.SourceExists(ctx, source.ID)
-			err = h.resourceManager.RegisterSource(ctx, source)
-			if err == nil && !exists {
-				w.Header().Set("Location", h.resourcePath(req.Type, resourceID))
-				w.WriteHeader(http.StatusCreated)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
+		if err := json.Unmarshal(req.Data, &source); err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid source data")
+			return
 		}
+		h.registerSource(ctx, w, req.Type, source)
 	case registry.ResourceTypeFlow:
 		var flow registry.Flow
-		if err = json.Unmarshal(req.Data, &flow); err == nil {
-			resourceID = flow.ID
-			exists, _ := h.resourceManager.FlowExists(ctx, flow.ID)
-			err = h.resourceManager.RegisterFlow(ctx, flow)
-			if err == nil && !exists {
-				w.Header().Set("Location", h.resourcePath(req.Type, resourceID))
-				w.WriteHeader(http.StatusCreated)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
+		if err := json.Unmarshal(req.Data, &flow); err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid flow data")
+			return
 		}
+		h.registerFlow(ctx, w, req.Type, flow)
 	case registry.ResourceTypeSender:
 		var sender registry.Sender
-		if err = json.Unmarshal(req.Data, &sender); err == nil {
-			resourceID = sender.ID
-			exists, _ := h.resourceManager.SenderExists(ctx, sender.ID)
-			err = h.resourceManager.RegisterSender(ctx, sender)
-			if err == nil && !exists {
-				w.Header().Set("Location", h.resourcePath(req.Type, resourceID))
-				w.WriteHeader(http.StatusCreated)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
+		if err := json.Unmarshal(req.Data, &sender); err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid sender data")
+			return
 		}
+		h.registerSender(ctx, w, req.Type, sender)
 	case registry.ResourceTypeReceiver:
 		var receiver registry.Receiver
-		if err = json.Unmarshal(req.Data, &receiver); err == nil {
-			resourceID = receiver.ID
-			exists, _ := h.resourceManager.ReceiverExists(ctx, receiver.ID)
-			err = h.resourceManager.RegisterReceiver(ctx, receiver)
-			if err == nil && !exists {
-				w.Header().Set("Location", h.resourcePath(req.Type, resourceID))
-				w.WriteHeader(http.StatusCreated)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
+		if err := json.Unmarshal(req.Data, &receiver); err != nil {
+			h.writeError(w, http.StatusBadRequest, "invalid receiver data")
+			return
 		}
+		h.registerReceiver(ctx, w, req.Type, receiver)
 	default:
-		h.writeError(w, http.StatusBadRequest, "invalid resource type", "")
-		return
+		h.writeError(w, http.StatusBadRequest, "invalid resource type")
 	}
+}
 
-	if err != nil {
-		var validationErr *registry.ValidationError
-		if errors.As(err, &validationErr) {
-			h.writeError(w, http.StatusBadRequest, err.Error(), "")
-		} else {
-			h.writeError(w, http.StatusInternalServerError, err.Error(), "")
-		}
+func (h *RegistrationHandlers) registerNode(ctx context.Context, w http.ResponseWriter, resourceType registry.ResourceType, node registry.Node) {
+	result := h.resourceManager.RegisterNode(ctx, node)
+	h.respond(w, resourceType, node.ID, result.ToVoid())
+}
+
+func (h *RegistrationHandlers) registerDevice(ctx context.Context, w http.ResponseWriter, resourceType registry.ResourceType, device registry.Device) {
+	result := h.resourceManager.RegisterDevice(ctx, device)
+	h.respond(w, resourceType, device.ID, result.ToVoid())
+}
+
+func (h *RegistrationHandlers) registerSource(ctx context.Context, w http.ResponseWriter, resourceType registry.ResourceType, source registry.Source) {
+	result := h.resourceManager.RegisterSource(ctx, source)
+	h.respond(w, resourceType, source.ID, result.ToVoid())
+}
+
+func (h *RegistrationHandlers) registerFlow(ctx context.Context, w http.ResponseWriter, resourceType registry.ResourceType, flow registry.Flow) {
+	result := h.resourceManager.RegisterFlow(ctx, flow)
+	h.respond(w, resourceType, flow.ID, result.ToVoid())
+}
+
+func (h *RegistrationHandlers) registerSender(ctx context.Context, w http.ResponseWriter, resourceType registry.ResourceType, sender registry.Sender) {
+	result := h.resourceManager.RegisterSender(ctx, sender)
+	h.respond(w, resourceType, sender.ID, result.ToVoid())
+}
+
+func (h *RegistrationHandlers) registerReceiver(ctx context.Context, w http.ResponseWriter, resourceType registry.ResourceType, receiver registry.Receiver) {
+	result := h.resourceManager.RegisterReceiver(ctx, receiver)
+	h.respond(w, resourceType, receiver.ID, result.ToVoid())
+}
+
+func (h *RegistrationHandlers) respond(w http.ResponseWriter, resourceType registry.ResourceType, resourceID string, result registry.Result[struct{}]) {
+	if result.IsFailure() {
+		err, _ := result.Error()
+		h.writeError(w, err.Code, err.Message)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(req.Data)
+	if result.WasCreated() {
+		w.Header().Set("Location", h.resourcePath(resourceType, resourceID))
+		w.WriteHeader(http.StatusCreated)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 }
 
 func (h *RegistrationHandlers) resourcePath(resourceType registry.ResourceType, id string) string {
@@ -168,12 +169,12 @@ func (h *RegistrationHandlers) UnregisterResource(w http.ResponseWriter, r *http
 	case registry.ResourceTypeReceiver, "receivers":
 		err = h.resourceManager.UnregisterReceiver(ctx, id)
 	default:
-		h.writeError(w, http.StatusBadRequest, "invalid resource type", "")
+		h.writeError(w, http.StatusBadRequest, "invalid resource type")
 		return
 	}
 
 	if err != nil {
-		h.writeError(w, http.StatusInternalServerError, err.Error(), "")
+		h.writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -183,12 +184,12 @@ func (h *RegistrationHandlers) UnregisterResource(w http.ResponseWriter, r *http
 func (h *RegistrationHandlers) Heartbeat(w http.ResponseWriter, r *http.Request) {
 	nodeID := chi.URLParam(r, "nodeID")
 	if nodeID == "" {
-		h.writeError(w, http.StatusBadRequest, "missing node ID", "")
+		h.writeError(w, http.StatusBadRequest, "missing node ID")
 		return
 	}
 
 	if err := h.heartbeatEngine.Heartbeat(r.Context(), nodeID); err != nil {
-		h.writeError(w, http.StatusInternalServerError, err.Error(), "")
+		h.writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -197,12 +198,11 @@ func (h *RegistrationHandlers) Heartbeat(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(map[string]interface{}{"health": nodeID})
 }
 
-func (h *RegistrationHandlers) writeError(w http.ResponseWriter, status int, errorMsg string, debug string) {
+func (h *RegistrationHandlers) writeError(w http.ResponseWriter, status int, errorMsg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(ErrorResponse{
 		Code:  status,
 		Error: errorMsg,
-		Debug: debug,
 	})
 }

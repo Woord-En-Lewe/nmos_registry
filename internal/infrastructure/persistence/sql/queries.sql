@@ -11,7 +11,7 @@ INSERT INTO nodes (
 INSERT INTO nodes (
     id, api_version, version, label, description, tags, href, hostname, api, caps, services, clocks, interfaces, last_seen
 ) VALUES (
-    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description), sqlc.arg(tags),
+    sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description), COALESCE(sqlc.arg(tags), 'null'),
     sqlc.arg(href), sqlc.arg(hostname), sqlc.arg(api), sqlc.arg(caps), sqlc.arg(services),
     sqlc.arg(clocks), sqlc.arg(interfaces), sqlc.arg(last_seen)
 )
@@ -57,7 +57,8 @@ INSERT INTO devices (
     id, api_version, node_id, version, label, description, tags, type, senders, receivers, controls
 ) VALUES (
     sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(node_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
-    sqlc.arg(tags), sqlc.arg(type), sqlc.arg(senders), sqlc.arg(receivers), sqlc.arg(controls)
+    COALESCE(sqlc.arg(tags), 'null'), sqlc.arg(type), COALESCE(sqlc.arg(senders), 'null'),
+    COALESCE(sqlc.arg(receivers), 'null'), COALESCE(sqlc.arg(controls), 'null')
 )
 ON CONFLICT(id) DO UPDATE SET
     api_version = excluded.api_version, node_id = excluded.node_id, version = excluded.version, label = excluded.label,
@@ -96,7 +97,8 @@ INSERT INTO sources (
     id, api_version, device_id, version, label, description, tags, grain_rate, format, caps, parents, clock_name
 ) VALUES (
     sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
-    sqlc.arg(tags), sqlc.arg(grain_rate), sqlc.arg(format), sqlc.arg(caps), sqlc.arg(parents), sqlc.arg(clock_name)
+    COALESCE(sqlc.arg(tags), 'null'), sqlc.arg(grain_rate), sqlc.arg(format), COALESCE(sqlc.arg(caps), 'null'),
+    COALESCE(sqlc.arg(parents), 'null'), sqlc.arg(clock_name)
 )
 ON CONFLICT(id) DO UPDATE SET
     api_version = excluded.api_version, device_id = excluded.device_id, version = excluded.version, label = excluded.label,
@@ -143,10 +145,11 @@ INSERT INTO flows (
     interlace_mode, colorspace, components, transfer_characteristic
 ) VALUES (
     sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(source_id), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label),
-    sqlc.arg(description), sqlc.arg(tags), sqlc.arg(format), sqlc.arg(media_type),
-    sqlc.arg(sample_rate), sqlc.arg(bit_depth), sqlc.arg(DID_SDID), sqlc.arg(grain_rate),
-    sqlc.arg(frame_width), sqlc.arg(frame_height), sqlc.arg(interlace_mode), sqlc.arg(colorspace),
-    sqlc.arg(components), sqlc.arg(transfer_characteristic)
+    sqlc.arg(description), COALESCE(sqlc.arg(tags), 'null'), sqlc.arg(format), sqlc.arg(media_type),
+    COALESCE(sqlc.arg(sample_rate), 'null'), sqlc.arg(bit_depth), COALESCE(sqlc.arg(DID_SDID), 'null'),
+    COALESCE(sqlc.arg(grain_rate), 'null'), sqlc.arg(frame_width), sqlc.arg(frame_height),
+    sqlc.arg(interlace_mode), sqlc.arg(colorspace), COALESCE(sqlc.arg(components), 'null'),
+    sqlc.arg(transfer_characteristic)
 )
 ON CONFLICT(id) DO UPDATE SET
     api_version = excluded.api_version, source_id = excluded.source_id, device_id = excluded.device_id, version = excluded.version,
@@ -199,8 +202,8 @@ INSERT INTO senders (
     manifest_href, interface_bindings, subscription_receiver_id, subscription_active
 ) VALUES (
     sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(flow_id), sqlc.arg(version), sqlc.arg(label),
-    sqlc.arg(description), sqlc.arg(tags), sqlc.arg(transport), sqlc.arg(manifest_href),
-    sqlc.arg(interface_bindings), sqlc.arg(subscription_receiver_id), sqlc.arg(subscription_active)
+    sqlc.arg(description), COALESCE(sqlc.arg(tags), 'null'), sqlc.arg(transport), sqlc.arg(manifest_href),
+    COALESCE(sqlc.arg(interface_bindings), 'null'), sqlc.arg(subscription_receiver_id), sqlc.arg(subscription_active)
 )
 ON CONFLICT(id) DO UPDATE SET
     api_version = excluded.api_version, device_id = excluded.device_id, flow_id = excluded.flow_id, version = excluded.version,
@@ -250,8 +253,8 @@ INSERT INTO receivers (
     interface_bindings, subscription_sender_id, subscription_active
 ) VALUES (
     sqlc.arg(id), sqlc.arg(api_version), sqlc.arg(device_id), sqlc.arg(version), sqlc.arg(label), sqlc.arg(description),
-    sqlc.arg(tags), sqlc.arg(transport), sqlc.arg(format), sqlc.arg(caps),
-    sqlc.arg(interface_bindings), sqlc.arg(subscription_sender_id), sqlc.arg(subscription_active)
+    COALESCE(sqlc.arg(tags), 'null'), sqlc.arg(transport), sqlc.arg(format), COALESCE(sqlc.arg(caps), 'null'),
+    COALESCE(sqlc.arg(interface_bindings), 'null'), sqlc.arg(subscription_sender_id), sqlc.arg(subscription_active)
 )
 ON CONFLICT(id) DO UPDATE SET
     api_version = excluded.api_version, device_id = excluded.device_id, version = excluded.version, label = excluded.label,

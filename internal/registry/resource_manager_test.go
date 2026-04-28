@@ -19,8 +19,9 @@ func TestResourceManager_Nodes(t *testing.T) {
 	}
 
 	// Register
-	err := manager.RegisterNode(ctx, node)
-	if err != nil {
+	result := manager.RegisterNode(ctx, node)
+	if result.IsFailure() {
+		err, _ := result.Error()
 		t.Fatalf("failed to register node: %v", err)
 	}
 
@@ -63,8 +64,9 @@ func TestResourceManager_Devices(t *testing.T) {
 	}
 
 	// Register
-	err := manager.RegisterDevice(ctx, device)
-	if err != nil {
+	deviceResult := manager.RegisterDevice(ctx, device)
+	if deviceResult.IsFailure() {
+		err, _ := deviceResult.Error()
 		t.Fatalf("failed to register device: %v", err)
 	}
 
@@ -79,8 +81,8 @@ func TestResourceManager_Devices(t *testing.T) {
 
 	// Register without node should fail
 	device2 := Device{ID: "device-2", NodeID: "non-existent"}
-	err = manager.RegisterDevice(ctx, device2)
-	if err == nil {
+	device2Result := manager.RegisterDevice(ctx, device2)
+	if device2Result.IsSuccess() {
 		t.Error("expected error registering device with non-existent node, got nil")
 	}
 }

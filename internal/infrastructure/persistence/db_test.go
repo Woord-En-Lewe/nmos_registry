@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/persistence"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/persistence/db"
 )

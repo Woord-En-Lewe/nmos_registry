@@ -137,8 +137,13 @@ Add comprehensive tests for:
 ## Status
 
 - [x] Phase 1: Error Handling Fix
-- [ ] Phase 2: IS-04 Required Validations
-- [ ] Phase 3: Database Migration
+- [x] Phase 2: IS-04 Required Validations
+  - [x] 2.1: Version Comparison
+  - [x] 2.2: API Version Tracking
+  - [x] 2.3: ID Collision Detection
+  - [x] 2.4: Parent ID Modification Detection
+  - [ ] 2.5: JSON Schema Validation (deferred - requires IS-04 JSON schemas)
+- [x] Phase 3: Database Migration (completed as part of Phase 2.2)
 - [ ] Phase 4: Testing
 
 ---
@@ -169,3 +174,51 @@ Add comprehensive tests for:
 ### Result
 - Parent not found errors now return HTTP 400 Bad Request (was 500)
 - All tests pass
+
+---
+
+## Phase 2 Completed
+
+### Changes Made
+
+#### 2.1: Version Comparison
+- Created `internal/registry/version.go` with:
+  - `Version` struct with Seconds and Nanos
+  - `ParseVersion(v string)` - parses "seconds:nanoseconds" format
+  - `CompareVersions(v1, v2 string)` - returns -1, 0, 1
+  - `IsVersionEarlier(v1, v2 string)` - checks if v1 < v2
+  - `IsVersionLater(v1, v2 string)` - checks if v1 > v2
+  - `IsVersionEqual(v1, v2 string)` - checks if v1 == v2
+- Created `internal/registry/version_test.go` with comprehensive tests
+
+#### 2.2: API Version Tracking
+- Updated `schema.sql` - added `api_version TEXT NOT NULL DEFAULT 'v1.3'` to all tables
+- Updated `queries.sql` - added `api_version` to all INSERT/UPSERT statements
+- Regenerated `db/models.go` and `db/queries.sql.go`
+- Updated `models.go` - added `ApiVersion` field to all resource structs
+- Updated `repository.go` - all CRUD operations now handle `ApiVersion`
+
+#### 2.3: ID Collision Detection
+- Added `IDExistsAsOtherType` to `IRepository` interface
+- Added SQL queries: `IDExistsInNodes`, `IDExistsInDevices`, `IDExistsInSources`, `IDExistsInFlows`, `IDExistsInSenders`, `IDExistsInReceivers`
+- Implemented in `SQLiteRepository` and `InMemoryRepository`
+- All `Register*` methods now check for ID collision before registration
+
+#### 2.4: Parent ID Modification Detection
+- All child resource types now check if parent ID has changed on update:
+  - Device: checks if `node_id` changed
+  - Source: checks if `device_id` changed
+  - Flow: checks if `source_id` or `device_id` changed
+  - Sender: checks if `device_id` changed
+  - Receiver: checks if `device_id` changed
+
+### IS-04 Compliance Summary
+
+The registry now correctly returns:
+
+| Scenario | HTTP Code | Error Type |
+|----------|-----------|------------|
+| Parent resource not found | 400 | ValidationError |
+| ID already used by different resource type | 400 | ValidationError |
+| Parent ID modified on update | 400 | ValidationError |
+| Generic server error | 500 | - |

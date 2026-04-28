@@ -55,8 +55,9 @@ func TestResourceManager_ReferentialIntegrity(t *testing.T) {
 		Api:         json.RawMessage(`{}`),
 	}
 
-	err := rm.RegisterNode(ctx, node)
-	if err != nil {
+	result := rm.RegisterNode(ctx, node)
+	if result.IsFailure() {
+		err, _ := result.Error()
 		t.Fatalf("RegisterNode failed: %v", err)
 	}
 
@@ -70,8 +71,9 @@ func TestResourceManager_ReferentialIntegrity(t *testing.T) {
 		Receivers: json.RawMessage(`[]`),
 	}
 
-	err = rm.RegisterDevice(ctx, device)
-	if err != nil {
+	deviceResult := rm.RegisterDevice(ctx, device)
+	if deviceResult.IsFailure() {
+		err, _ := deviceResult.Error()
 		t.Fatalf("RegisterDevice failed: %v", err)
 	}
 
@@ -85,8 +87,8 @@ func TestResourceManager_ReferentialIntegrity(t *testing.T) {
 		Receivers: json.RawMessage(`[]`),
 	}
 
-	err = rm.RegisterDevice(ctx, device2)
-	if err == nil {
+	device2Result := rm.RegisterDevice(ctx, device2)
+	if device2Result.IsSuccess() {
 		t.Errorf("RegisterDevice should fail for non-existent parent node")
 	}
 }
@@ -134,16 +136,20 @@ func TestResourceManager_ResourceOrdering(t *testing.T) {
 		Format:      "urn:x-nmos:format:video",
 	}
 
-	if err := rm.RegisterNode(ctx, node); err != nil {
+	if nodeResult := rm.RegisterNode(ctx, node); nodeResult.IsFailure() {
+		err, _ := nodeResult.Error()
 		t.Fatalf("RegisterNode failed: %v", err)
 	}
-	if err := rm.RegisterDevice(ctx, device); err != nil {
+	if deviceResult := rm.RegisterDevice(ctx, device); deviceResult.IsFailure() {
+		err, _ := deviceResult.Error()
 		t.Fatalf("RegisterDevice failed: %v", err)
 	}
-	if err := rm.RegisterSource(ctx, source); err != nil {
+	if sourceResult := rm.RegisterSource(ctx, source); sourceResult.IsFailure() {
+		err, _ := sourceResult.Error()
 		t.Fatalf("RegisterSource failed: %v", err)
 	}
-	if err := rm.RegisterFlow(ctx, flow); err != nil {
+	if flowResult := rm.RegisterFlow(ctx, flow); flowResult.IsFailure() {
+		err, _ := flowResult.Error()
 		t.Fatalf("RegisterFlow failed: %v", err)
 	}
 
@@ -482,8 +488,9 @@ func TestIntegratedScenario_SenderWithFlow(t *testing.T) {
 		Label:     "Test Sender",
 		Transport: "urn:x-nmos:transport:rtp",
 	}
-	err := rm.RegisterSender(ctx, sender)
-	if err != nil {
+	senderResult := rm.RegisterSender(ctx, sender)
+	if senderResult.IsFailure() {
+		err, _ := senderResult.Error()
 		t.Fatalf("RegisterSender failed: %v", err)
 	}
 
@@ -506,8 +513,8 @@ func TestIntegratedScenario_ReceiverRequiresDevice(t *testing.T) {
 		Transport: "urn:x-nmos:transport:rtp",
 		Format:    "urn:x-nmos:format:video",
 	}
-	err := rm.RegisterReceiver(ctx, receiver)
-	if err == nil {
+	result := rm.RegisterReceiver(ctx, receiver)
+	if result.IsSuccess() {
 		t.Errorf("Expected error registering receiver without parent device")
 	}
 }

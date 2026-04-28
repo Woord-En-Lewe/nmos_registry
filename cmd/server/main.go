@@ -12,7 +12,7 @@ import (
 	transporthttp "github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/transport/http"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/transport/websocket"
 	"github.com/Woord-En-Lewe/nmos_registry/internal/registry"
-	_ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	defer cancel()
 
 	// 1. Initialize DB
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared&_pragma=foreign_keys(1)")
+	db, err := sql.Open("sqlite3", "db.sqlite")
 	if err != nil {
 		log.Fatalf("failed to open sqlite: %v", err)
 	}

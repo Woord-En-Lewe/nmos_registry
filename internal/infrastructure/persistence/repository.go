@@ -3,6 +3,9 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
+	"sync"
 	"time"
 
 	"github.com/Woord-En-Lewe/nmos_registry/internal/infrastructure/persistence/db"
@@ -12,6 +15,7 @@ import (
 type SQLiteRepository struct {
 	queries *db.Queries
 	db      *sql.DB
+	mu      sync.Mutex
 }
 
 func NewSQLiteRepository(sqlDB *sql.DB) *SQLiteRepository {
@@ -23,6 +27,8 @@ func NewSQLiteRepository(sqlDB *sql.DB) *SQLiteRepository {
 
 // Node operations
 func (r *SQLiteRepository) UpsertNode(ctx context.Context, node registry.Node) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpsertNode(ctx, db.UpsertNodeParams{
 		ID:          node.ID,
 		ApiVersion:  node.ApiVersion,
@@ -42,12 +48,17 @@ func (r *SQLiteRepository) UpsertNode(ctx context.Context, node registry.Node) e
 }
 
 func (r *SQLiteRepository) DeleteNode(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.DeleteNode(ctx, id)
 }
 
 func (r *SQLiteRepository) GetNode(ctx context.Context, id string) (registry.Node, error) {
 	n, err := r.queries.GetNode(ctx, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return registry.Node{}, registry.ErrResourceNotFound
+		}
 		return registry.Node{}, err
 	}
 	return registry.Node{
@@ -96,18 +107,18 @@ func (r *SQLiteRepository) ListNodes(ctx context.Context) ([]registry.Node, erro
 }
 
 func (r *SQLiteRepository) UpdateNodeHealth(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpdateNodeLastSeen(ctx, db.UpdateNodeLastSeenParams{
 		ID:       id,
 		LastSeen: sql.NullTime{Time: time.Now(), Valid: true},
 	})
 }
 
-func (r *SQLiteRepository) GetExpiredNodes(ctx context.Context, expirationTime time.Time) ([]string, error) {
-	return r.queries.GetExpiredNodes(ctx, sql.NullTime{Time: expirationTime, Valid: true})
-}
-
 // Device operations
 func (r *SQLiteRepository) UpsertDevice(ctx context.Context, device registry.Device) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpsertDevice(ctx, db.UpsertDeviceParams{
 		ID:          device.ID,
 		ApiVersion:  device.ApiVersion,
@@ -123,13 +134,22 @@ func (r *SQLiteRepository) UpsertDevice(ctx context.Context, device registry.Dev
 	})
 }
 
+func (r *SQLiteRepository) GetExpiredNodes(ctx context.Context, expirationTime time.Time) ([]string, error) {
+	return r.queries.GetExpiredNodes(ctx, sql.NullTime{Time: expirationTime, Valid: true})
+}
+
 func (r *SQLiteRepository) DeleteDevice(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.DeleteDevice(ctx, id)
 }
 
 func (r *SQLiteRepository) GetDevice(ctx context.Context, id string) (registry.Device, error) {
 	d, err := r.queries.GetDevice(ctx, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return registry.Device{}, registry.ErrResourceNotFound
+		}
 		return registry.Device{}, err
 	}
 	return registry.Device{
@@ -173,6 +193,8 @@ func (r *SQLiteRepository) ListDevices(ctx context.Context) ([]registry.Device, 
 
 // Source operations
 func (r *SQLiteRepository) UpsertSource(ctx context.Context, source registry.Source) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpsertSource(ctx, db.UpsertSourceParams{
 		ID:          source.ID,
 		ApiVersion:  source.ApiVersion,
@@ -183,19 +205,24 @@ func (r *SQLiteRepository) UpsertSource(ctx context.Context, source registry.Sou
 		Tags:        source.Tags,
 		GrainRate:   source.GrainRate,
 		Format:      source.Format,
-		Caps:        source.Caps,
-		Parents:     source.Parents,
+		Caps:        nilToEmptyJSON(source.Caps),
+		Parents:     nilToEmptyJSON(source.Parents),
 		ClockName:   toNullString(source.ClockName),
 	})
 }
 
 func (r *SQLiteRepository) DeleteSource(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.DeleteSource(ctx, id)
 }
 
 func (r *SQLiteRepository) GetSource(ctx context.Context, id string) (registry.Source, error) {
 	s, err := r.queries.GetSource(ctx, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return registry.Source{}, registry.ErrResourceNotFound
+		}
 		return registry.Source{}, err
 	}
 	return registry.Source{
@@ -241,6 +268,8 @@ func (r *SQLiteRepository) ListSources(ctx context.Context) ([]registry.Source, 
 
 // Flow operations
 func (r *SQLiteRepository) UpsertFlow(ctx context.Context, flow registry.Flow) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpsertFlow(ctx, db.UpsertFlowParams{
 		ID:                     flow.ID,
 		ApiVersion:             flow.ApiVersion,
@@ -252,26 +281,31 @@ func (r *SQLiteRepository) UpsertFlow(ctx context.Context, flow registry.Flow) e
 		Tags:                   flow.Tags,
 		Format:                 flow.Format,
 		MediaType:              toNullString(flow.MediaType),
-		SampleRate:             flow.SampleRate,
+		SampleRate:             nilToEmptyJSON(flow.SampleRate),
 		BitDepth:               toNullInt64(flow.BitDepth),
-		DidSdid:                flow.DidSdid,
-		GrainRate:              flow.GrainRate,
+		DidSdid:                nilToEmptyJSON(flow.DidSdid),
+		GrainRate:              nilToEmptyJSON(flow.GrainRate),
 		FrameWidth:             toNullInt64(flow.FrameWidth),
 		FrameHeight:            toNullInt64(flow.FrameHeight),
 		InterlaceMode:          toNullString(flow.InterlaceMode),
 		Colorspace:             toNullString(flow.Colorspace),
-		Components:             flow.Components,
+		Components:             nilToEmptyJSON(flow.Components),
 		TransferCharacteristic: toNullString(flow.TransferCharacteristic),
 	})
 }
 
 func (r *SQLiteRepository) DeleteFlow(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.DeleteFlow(ctx, id)
 }
 
 func (r *SQLiteRepository) GetFlow(ctx context.Context, id string) (registry.Flow, error) {
 	f, err := r.queries.GetFlow(ctx, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return registry.Flow{}, registry.ErrResourceNotFound
+		}
 		return registry.Flow{}, err
 	}
 	return registry.Flow{
@@ -333,6 +367,8 @@ func (r *SQLiteRepository) ListFlows(ctx context.Context) ([]registry.Flow, erro
 
 // Senders
 func (r *SQLiteRepository) UpsertSender(ctx context.Context, sender registry.Sender) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpsertSender(ctx, db.UpsertSenderParams{
 		ID:                     sender.ID,
 		ApiVersion:             sender.ApiVersion,
@@ -344,19 +380,24 @@ func (r *SQLiteRepository) UpsertSender(ctx context.Context, sender registry.Sen
 		Tags:                   sender.Tags,
 		Transport:              sender.Transport,
 		ManifestHref:           toNullString(sender.ManifestHref),
-		InterfaceBindings:      sender.InterfaceBindings,
+		InterfaceBindings:      nilToEmptyJSON(sender.InterfaceBindings),
 		SubscriptionReceiverID: toNullString(sender.SubscriptionReceiverID),
 		SubscriptionActive:     toNullBool(sender.SubscriptionActive),
 	})
 }
 
 func (r *SQLiteRepository) DeleteSender(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.DeleteSender(ctx, id)
 }
 
 func (r *SQLiteRepository) GetSender(ctx context.Context, id string) (registry.Sender, error) {
 	s, err := r.queries.GetSender(ctx, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return registry.Sender{}, registry.ErrResourceNotFound
+		}
 		return registry.Sender{}, err
 	}
 	return registry.Sender{
@@ -404,6 +445,8 @@ func (r *SQLiteRepository) ListSenders(ctx context.Context) ([]registry.Sender, 
 
 // Receivers
 func (r *SQLiteRepository) UpsertReceiver(ctx context.Context, receiver registry.Receiver) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpsertReceiver(ctx, db.UpsertReceiverParams{
 		ID:                   receiver.ID,
 		ApiVersion:           receiver.ApiVersion,
@@ -414,20 +457,25 @@ func (r *SQLiteRepository) UpsertReceiver(ctx context.Context, receiver registry
 		Tags:                 receiver.Tags,
 		Transport:            receiver.Transport,
 		Format:               receiver.Format,
-		Caps:                 receiver.Caps,
-		InterfaceBindings:    receiver.InterfaceBindings,
+		Caps:                 nilToEmptyJSON(receiver.Caps),
+		InterfaceBindings:    nilToEmptyJSON(receiver.InterfaceBindings),
 		SubscriptionSenderID: toNullString(receiver.SubscriptionSenderID),
 		SubscriptionActive:   toNullBool(receiver.SubscriptionActive),
 	})
 }
 
 func (r *SQLiteRepository) DeleteReceiver(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.DeleteReceiver(ctx, id)
 }
 
 func (r *SQLiteRepository) GetReceiver(ctx context.Context, id string) (registry.Receiver, error) {
 	rec, err := r.queries.GetReceiver(ctx, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return registry.Receiver{}, registry.ErrResourceNotFound
+		}
 		return registry.Receiver{}, err
 	}
 	return registry.Receiver{
@@ -474,6 +522,8 @@ func (r *SQLiteRepository) ListReceivers(ctx context.Context) ([]registry.Receiv
 }
 
 func (r *SQLiteRepository) UpsertSubscription(ctx context.Context, subscription registry.Subscription) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.UpsertSubscription(ctx, db.UpsertSubscriptionParams{
 		ID:              subscription.ID,
 		ResourcePath:    subscription.ResourcePath,
@@ -522,6 +572,8 @@ func (r *SQLiteRepository) ListSubscriptions(ctx context.Context) ([]registry.Su
 }
 
 func (r *SQLiteRepository) DeleteSubscription(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	return r.queries.DeleteSubscription(ctx, id)
 }
 
@@ -545,6 +597,27 @@ func fromNullString(ns sql.NullString) *string {
 		return nil
 	}
 	return &ns.String
+}
+
+func fromNullRawMessage(data []byte) json.RawMessage {
+	if len(data) == 0 {
+		return json.RawMessage("null")
+	}
+	return data
+}
+
+func ensureJSONNotNull(data json.RawMessage) json.RawMessage {
+	if len(data) == 0 {
+		return json.RawMessage("null")
+	}
+	return data
+}
+
+func coalesceJSON(data json.RawMessage) interface{} {
+	if len(data) == 0 {
+		return nil
+	}
+	return data
 }
 
 func toNullInt64(i *int) sql.NullInt64 {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -25,7 +24,7 @@ func (m *mockRepository) UpsertNode(ctx context.Context, node registry.Node) err
 func (m *mockRepository) GetNode(ctx context.Context, id string) (registry.Node, error) {
 	node, ok := m.nodes[id]
 	if !ok {
-		return registry.Node{}, fmt.Errorf("node not found: %s", id)
+		return registry.Node{}, registry.ErrResourceNotFound
 	}
 	return node, nil
 }
