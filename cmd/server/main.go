@@ -20,7 +20,7 @@ func main() {
 	defer cancel()
 
 	// 1. Initialize DB
-	db, err := sql.Open("sqlite3", "db.sqlite")
+	db, err := sql.Open("sqlite3", "file::memory:?cache=shared&_pragma=foreign_keys(1)")
 	if err != nil {
 		log.Fatalf("failed to open sqlite: %v", err)
 	}
