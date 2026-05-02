@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Describes a Receiver",
+  "title": "Receiver resource",
+  "anyOf": [
+    { "$ref": "receiver_video.json" },
+    { "$ref": "receiver_audio.json" }
+  ]
+}

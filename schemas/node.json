@@ -1,0 +1,335 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "allOf": [
+        {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "description": "Describes the foundations of all NMOS resources",
+            "properties": {
+                "description": {
+                    "description": "Detailed description of the resource",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Globally unique identifier for the resource",
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "Freeform string label for the resource",
+                    "type": "string"
+                },
+                "tags": {
+                    "description": "Key value set of freeform string tags to aid in filtering resources. Values should be represented as an array of strings. Can be empty.",
+                    "patternProperties": {
+                        "": {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "version": {
+                    "description": "String formatted TAI timestamp (<seconds>:<nanoseconds>) indicating precisely when an attribute of the resource last changed",
+                    "pattern": "^[0-9]+:[0-9]+$",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "version",
+                "label",
+                "description",
+                "tags"
+            ],
+            "title": "Base resource",
+            "type": "object"
+        },
+        {
+            "properties": {
+                "api": {
+                    "description": "URL fragments required to connect to the Node API",
+                    "properties": {
+                        "endpoints": {
+                            "description": "Host, port and protocol details required to connect to the API",
+                            "items": {
+                                "properties": {
+                                    "authorization": {
+                                        "default": false,
+                                        "description": "This endpoint requires authorization",
+                                        "type": "boolean"
+                                    },
+                                    "host": {
+                                        "anyOf": [
+                                            {
+                                                "format": "hostname"
+                                            },
+                                            {
+                                                "format": "ipv4"
+                                            },
+                                            {
+                                                "format": "ipv6"
+                                            }
+                                        ],
+                                        "description": "IP address or hostname which the Node API is running on",
+                                        "type": "string"
+                                    },
+                                    "port": {
+                                        "description": "Port number which the Node API is running on",
+                                        "maximum": 65535,
+                                        "minimum": 1,
+                                        "type": "integer"
+                                    },
+                                    "protocol": {
+                                        "description": "Protocol supported by this instance of the Node API",
+                                        "enum": [
+                                            "http",
+                                            "https"
+                                        ],
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "host",
+                                    "port",
+                                    "protocol"
+                                ],
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "versions": {
+                            "description": "Supported API versions running on this Node",
+                            "items": {
+                                "pattern": "^v[0-9]+\\.[0-9]+$",
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "versions",
+                        "endpoints"
+                    ],
+                    "type": "object"
+                },
+                "caps": {
+                    "description": "Capabilities (not yet defined)",
+                    "type": "object"
+                },
+                "clocks": {
+                    "description": "Clocks made available to Devices owned by this Node",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$schema": "http://json-schema.org/draft-04/schema#",
+                                "description": "Describes a clock with no external reference",
+                                "properties": {
+                                    "name": {
+                                        "description": "Name of this refclock (unique for this set of clocks)",
+                                        "pattern": "^clk[0-9]+$",
+                                        "type": "string"
+                                    },
+                                    "ref_type": {
+                                        "description": "Type of external reference used by this clock",
+                                        "enum": [
+                                            "internal"
+                                        ],
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "ref_type"
+                                ],
+                                "title": "Clock with no external reference",
+                                "type": "object"
+                            },
+                            {
+                                "$schema": "http://json-schema.org/draft-04/schema#",
+                                "description": "Describes a clock referenced to PTP",
+                                "properties": {
+                                    "gmid": {
+                                        "description": "ID of the PTP reference used by this clock",
+                                        "pattern": "^[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}$",
+                                        "type": "string"
+                                    },
+                                    "locked": {
+                                        "description": "Lock state of this clock to the external reference. If true, this device follows the external reference, otherwise it has no defined relationship to the external reference",
+                                        "type": "boolean"
+                                    },
+                                    "name": {
+                                        "description": "Name of this refclock (unique for this set of clocks)",
+                                        "pattern": "^clk[0-9]+$",
+                                        "type": "string"
+                                    },
+                                    "ref_type": {
+                                        "description": "Type of external reference used by this clock",
+                                        "enum": [
+                                            "ptp"
+                                        ],
+                                        "type": "string"
+                                    },
+                                    "traceable": {
+                                        "description": "External refclock is synchronised to International Atomic Time (TAI)",
+                                        "type": "boolean"
+                                    },
+                                    "version": {
+                                        "description": "Version of PTP reference used by this clock",
+                                        "enum": [
+                                            "IEEE1588-2008"
+                                        ],
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "ref_type",
+                                    "traceable",
+                                    "version",
+                                    "gmid",
+                                    "locked"
+                                ],
+                                "title": "PTP clock",
+                                "type": "object"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "hostname": {
+                    "description": "Node hostname (optional, deprecated)",
+                    "format": "hostname",
+                    "type": "string"
+                },
+                "href": {
+                    "description": "HTTP access href for the Node's API (deprecated)",
+                    "format": "uri",
+                    "type": "string"
+                },
+                "interfaces": {
+                    "description": "Network interfaces made available to devices owned by this Node. Port IDs and Chassis IDs are used to inform topology discovery via IS-06, and require that interfaces implement ARP at a minimum, and ideally LLDP.",
+                    "items": {
+                        "properties": {
+                            "attached_network_device": {
+                                "properties": {
+                                    "chassis_id": {
+                                        "anyOf": [
+                                            {
+                                                "description": "When the Chassis ID is a MAC address, use this format",
+                                                "pattern": "^([0-9a-f]{2}-){5}([0-9a-f]{2})$",
+                                                "type": "string"
+                                            },
+                                            {
+                                                "description": "When the Chassis ID is anything other than a MAC address, a freeform string may be used",
+                                                "pattern": "^.+$",
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "description": "Chassis ID of the attached network device, as signalled in LLDP received by this Node."
+                                    },
+                                    "port_id": {
+                                        "anyOf": [
+                                            {
+                                                "description": "When the Port ID is a MAC address, use this format",
+                                                "pattern": "^([0-9a-f]{2}-){5}([0-9a-f]{2})$",
+                                                "type": "string"
+                                            },
+                                            {
+                                                "description": "When the Port ID is a MAC address, use this format",
+                                                "pattern": "^.+$",
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "description": "Port ID of the attached network device, as signalled in LLDP received by this Node."
+                                    }
+                                },
+                                "required": [
+                                    "chassis_id",
+                                    "port_id"
+                                ],
+                                "type": "object"
+                            },
+                            "chassis_id": {
+                                "anyOf": [
+                                    {
+                                        "description": "When the Chassis ID is a MAC address, use this format",
+                                        "pattern": "^([0-9a-f]{2}-){5}([0-9a-f]{2})$",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "description": "When the Chassis ID is anything other than a MAC address, a freeform string may be used",
+                                        "pattern": "^.+$",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "description": "When the Chassis ID is unavailable it should be set to null",
+                                        "type": "null"
+                                    }
+                                ],
+                                "description": "Chassis ID of the interface, as signalled in LLDP from this node. Set to null where LLDP is unsuitable for use (ie. virtualised environments)"
+                            },
+                            "name": {
+                                "description": "Name of the interface (unique in scope of this node).  This attribute is used by sub-resources of this node such as senders and receivers to refer to interfaces to which they are bound.",
+                                "type": "string"
+                            },
+                            "port_id": {
+                                "description": "Port ID of the interface, as signalled in LLDP or via ARP responses from this node. Must be a MAC address",
+                                "pattern": "^([0-9a-f]{2}-){5}([0-9a-f]{2})$",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "chassis_id",
+                            "port_id",
+                            "name"
+                        ],
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "services": {
+                    "description": "Array of objects containing a URN format type and href",
+                    "items": {
+                        "properties": {
+                            "authorization": {
+                                "default": false,
+                                "description": "This endpoint requires authorization",
+                                "type": "boolean"
+                            },
+                            "href": {
+                                "description": "URL to reach a service running on the Node",
+                                "format": "uri",
+                                "type": "string"
+                            },
+                            "type": {
+                                "description": "URN identifying the type of service",
+                                "format": "uri",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "href",
+                            "type"
+                        ],
+                        "type": "object"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "href",
+                "caps",
+                "api",
+                "services",
+                "clocks",
+                "interfaces"
+            ],
+            "type": "object"
+        }
+    ],
+    "description": "Describes the Node and the services which run on it",
+    "title": "Node resource",
+    "type": "object"
+}

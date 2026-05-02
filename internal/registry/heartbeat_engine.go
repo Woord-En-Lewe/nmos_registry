@@ -53,8 +53,13 @@ func (e *HeartbeatEngine) PerformCleanup(ctx context.Context) {
 	}
 
 	for _, nodeID := range expiredNodes {
-		err := e.repo.DeleteNode(ctx, nodeID)
-		if err != nil {
+		devices, _ := e.repo.ListDevices(ctx)
+		for _, d := range devices {
+			if d.NodeID == nodeID {
+				e.repo.DeleteDevice(ctx, d.ID)
+			}
+		}
+		if err := e.repo.DeleteNode(ctx, nodeID); err != nil {
 			log.Printf("Error deleting expired node %s: %v", nodeID, err)
 		}
 	}

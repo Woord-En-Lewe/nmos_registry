@@ -203,7 +203,7 @@ func (r *SQLiteRepository) UpsertSource(ctx context.Context, source registry.Sou
 		Label:       source.Label,
 		Description: source.Description,
 		Tags:        source.Tags,
-		GrainRate:   source.GrainRate,
+		GrainRate:   nilToEmptyJSON(source.GrainRate),
 		Format:      source.Format,
 		Caps:        nilToEmptyJSON(source.Caps),
 		Parents:     nilToEmptyJSON(source.Parents),
@@ -369,6 +369,12 @@ func (r *SQLiteRepository) ListFlows(ctx context.Context) ([]registry.Flow, erro
 func (r *SQLiteRepository) UpsertSender(ctx context.Context, sender registry.Sender) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	var subscriptionReceiverID *string
+	var subscriptionActive *bool
+	if sender.Subscription != nil {
+		subscriptionReceiverID = sender.Subscription.ReceiverID
+		subscriptionActive = sender.Subscription.Active
+	}
 	return r.queries.UpsertSender(ctx, db.UpsertSenderParams{
 		ID:                     sender.ID,
 		ApiVersion:             sender.ApiVersion,
@@ -381,8 +387,8 @@ func (r *SQLiteRepository) UpsertSender(ctx context.Context, sender registry.Sen
 		Transport:              sender.Transport,
 		ManifestHref:           toNullString(sender.ManifestHref),
 		InterfaceBindings:      nilToEmptyJSON(sender.InterfaceBindings),
-		SubscriptionReceiverID: toNullString(sender.SubscriptionReceiverID),
-		SubscriptionActive:     toNullBool(sender.SubscriptionActive),
+		SubscriptionReceiverID: toNullString(subscriptionReceiverID),
+		SubscriptionActive:     toNullBool(subscriptionActive),
 	})
 }
 
@@ -400,7 +406,14 @@ func (r *SQLiteRepository) GetSender(ctx context.Context, id string) (registry.S
 		}
 		return registry.Sender{}, err
 	}
-	return registry.Sender{
+	var subscription *registry.SenderSubscription
+	if s.SubscriptionReceiverID.Valid || s.SubscriptionActive.Valid {
+		subscription = &registry.SenderSubscription{
+			ReceiverID: fromNullString(s.SubscriptionReceiverID),
+			Active:     fromNullBool(s.SubscriptionActive),
+		}
+	}
+return registry.Sender{
 		ID:                     s.ID,
 		ApiVersion:             s.ApiVersion,
 		DeviceID:               s.DeviceID,
@@ -412,8 +425,7 @@ func (r *SQLiteRepository) GetSender(ctx context.Context, id string) (registry.S
 		Transport:              s.Transport,
 		ManifestHref:           fromNullString(s.ManifestHref),
 		InterfaceBindings:      s.InterfaceBindings,
-		SubscriptionReceiverID: fromNullString(s.SubscriptionReceiverID),
-		SubscriptionActive:     fromNullBool(s.SubscriptionActive),
+		Subscription:           subscription,
 	}, nil
 }
 
@@ -424,20 +436,25 @@ func (r *SQLiteRepository) ListSenders(ctx context.Context) ([]registry.Sender, 
 	}
 	senders := make([]registry.Sender, len(dbSenders))
 	for i, s := range dbSenders {
+		var subscription *registry.SenderSubscription
+		if s.SubscriptionReceiverID.Valid || s.SubscriptionActive.Valid {
+			subscription = &registry.SenderSubscription{
+				ReceiverID: fromNullString(s.SubscriptionReceiverID),
+				Active:     fromNullBool(s.SubscriptionActive),
+			}
+		}
 		senders[i] = registry.Sender{
-			ID:                     s.ID,
-			ApiVersion:             s.ApiVersion,
-			DeviceID:               s.DeviceID,
-			FlowID:                 fromNullString(s.FlowID),
-			Version:                s.Version,
-			Label:                  s.Label,
-			Description:            s.Description,
-			Tags:                   s.Tags,
-			Transport:              s.Transport,
-			ManifestHref:           fromNullString(s.ManifestHref),
-			InterfaceBindings:      s.InterfaceBindings,
-			SubscriptionReceiverID: fromNullString(s.SubscriptionReceiverID),
-			SubscriptionActive:     fromNullBool(s.SubscriptionActive),
+			ID:          s.ID,
+			ApiVersion:  s.ApiVersion,
+			DeviceID:    s.DeviceID,
+			Version:     s.Version,
+			Label:       s.Label,
+			Description: s.Description,
+			Tags:        s.Tags,
+			Transport:   s.Transport,
+			ManifestHref: fromNullString(s.ManifestHref),
+			InterfaceBindings: s.InterfaceBindings,
+			Subscription: subscription,
 		}
 	}
 	return senders, nil
@@ -447,6 +464,12 @@ func (r *SQLiteRepository) ListSenders(ctx context.Context) ([]registry.Sender, 
 func (r *SQLiteRepository) UpsertReceiver(ctx context.Context, receiver registry.Receiver) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	var subscriptionSenderID *string
+	var subscriptionActive *bool
+	if receiver.Subscription != nil {
+		subscriptionSenderID = receiver.Subscription.SenderID
+		subscriptionActive = receiver.Subscription.Active
+	}
 	return r.queries.UpsertReceiver(ctx, db.UpsertReceiverParams{
 		ID:                   receiver.ID,
 		ApiVersion:           receiver.ApiVersion,
@@ -459,8 +482,8 @@ func (r *SQLiteRepository) UpsertReceiver(ctx context.Context, receiver registry
 		Format:               receiver.Format,
 		Caps:                 nilToEmptyJSON(receiver.Caps),
 		InterfaceBindings:    nilToEmptyJSON(receiver.InterfaceBindings),
-		SubscriptionSenderID: toNullString(receiver.SubscriptionSenderID),
-		SubscriptionActive:   toNullBool(receiver.SubscriptionActive),
+		SubscriptionSenderID: toNullString(subscriptionSenderID),
+		SubscriptionActive:   toNullBool(subscriptionActive),
 	})
 }
 
@@ -478,20 +501,26 @@ func (r *SQLiteRepository) GetReceiver(ctx context.Context, id string) (registry
 		}
 		return registry.Receiver{}, err
 	}
+	var subscription *registry.ReceiverSubscription
+	if rec.SubscriptionSenderID.Valid || rec.SubscriptionActive.Valid {
+		subscription = &registry.ReceiverSubscription{
+			SenderID: fromNullString(rec.SubscriptionSenderID),
+			Active:   fromNullBool(rec.SubscriptionActive),
+		}
+	}
 	return registry.Receiver{
-		ID:                   rec.ID,
-		ApiVersion:           rec.ApiVersion,
-		DeviceID:             rec.DeviceID,
-		Version:              rec.Version,
-		Label:                rec.Label,
-		Description:          rec.Description,
-		Tags:                 rec.Tags,
-		Transport:            rec.Transport,
-		Format:               rec.Format,
-		Caps:                 rec.Caps,
-		InterfaceBindings:    rec.InterfaceBindings,
-		SubscriptionSenderID: fromNullString(rec.SubscriptionSenderID),
-		SubscriptionActive:   fromNullBool(rec.SubscriptionActive),
+		ID:                rec.ID,
+		ApiVersion:        rec.ApiVersion,
+		DeviceID:          rec.DeviceID,
+		Version:           rec.Version,
+		Label:             rec.Label,
+		Description:       rec.Description,
+		Tags:              rec.Tags,
+		Transport:         rec.Transport,
+		Format:            rec.Format,
+		Caps:              rec.Caps,
+		InterfaceBindings: rec.InterfaceBindings,
+		Subscription:      subscription,
 	}, nil
 }
 
@@ -502,20 +531,26 @@ func (r *SQLiteRepository) ListReceivers(ctx context.Context) ([]registry.Receiv
 	}
 	receivers := make([]registry.Receiver, len(dbReceivers))
 	for i, rec := range dbReceivers {
+		var subscription *registry.ReceiverSubscription
+		if rec.SubscriptionSenderID.Valid || rec.SubscriptionActive.Valid {
+			subscription = &registry.ReceiverSubscription{
+				SenderID: fromNullString(rec.SubscriptionSenderID),
+				Active:   fromNullBool(rec.SubscriptionActive),
+			}
+		}
 		receivers[i] = registry.Receiver{
-			ID:                   rec.ID,
-			ApiVersion:           rec.ApiVersion,
-			DeviceID:             rec.DeviceID,
-			Version:              rec.Version,
-			Label:                rec.Label,
-			Description:          rec.Description,
-			Tags:                 rec.Tags,
-			Transport:            rec.Transport,
-			Format:               rec.Format,
-			Caps:                 rec.Caps,
-			InterfaceBindings:    rec.InterfaceBindings,
-			SubscriptionSenderID: fromNullString(rec.SubscriptionSenderID),
-			SubscriptionActive:   fromNullBool(rec.SubscriptionActive),
+			ID:                rec.ID,
+			ApiVersion:        rec.ApiVersion,
+			DeviceID:          rec.DeviceID,
+			Version:           rec.Version,
+			Label:             rec.Label,
+			Description:       rec.Description,
+			Tags:              rec.Tags,
+			Transport:         rec.Transport,
+			Format:            rec.Format,
+			Caps:              rec.Caps,
+			InterfaceBindings: rec.InterfaceBindings,
+			Subscription:      subscription,
 		}
 	}
 	return receivers, nil
@@ -528,10 +563,10 @@ func (r *SQLiteRepository) UpsertSubscription(ctx context.Context, subscription 
 		ID:              subscription.ID,
 		ResourcePath:    subscription.ResourcePath,
 		Params:          subscription.Params,
-		MaxUpdateRateMs: toNullInt64(subscription.MaxUpdateRateMs),
-		Persist:         toNullBool(subscription.Persist),
-		SecureWebsocket: toNullBool(subscription.SecureWebsocket),
-		WsHref:          toNullString(subscription.WsHref),
+		MaxUpdateRateMs: toNullInt64FromInt(subscription.MaxUpdateRateMs),
+		Persist:         toNullBoolFromBool(subscription.Persist),
+		SecureWebsocket: toNullBool(subscription.Secure),
+		WsHref:          toNullStringFromString(subscription.WsHref),
 	})
 }
 
@@ -544,10 +579,10 @@ func (r *SQLiteRepository) GetSubscription(ctx context.Context, id string) (regi
 		ID:              sub.ID,
 		ResourcePath:    sub.ResourcePath,
 		Params:          sub.Params,
-		MaxUpdateRateMs: fromNullInt64ToInt(sub.MaxUpdateRateMs),
-		Persist:         fromNullBool(sub.Persist),
-		SecureWebsocket: fromNullBool(sub.SecureWebsocket),
-		WsHref:          fromNullString(sub.WsHref),
+		MaxUpdateRateMs: fromNullInt64ToIntValue(sub.MaxUpdateRateMs),
+		Persist:         fromNullBoolToBool(sub.Persist),
+		Secure:          fromNullBool(sub.SecureWebsocket),
+		WsHref:          fromNullStringToString(sub.WsHref),
 	}, nil
 }
 
@@ -562,10 +597,10 @@ func (r *SQLiteRepository) ListSubscriptions(ctx context.Context) ([]registry.Su
 			ID:              sub.ID,
 			ResourcePath:    sub.ResourcePath,
 			Params:          sub.Params,
-			MaxUpdateRateMs: fromNullInt64ToInt(sub.MaxUpdateRateMs),
-			Persist:         fromNullBool(sub.Persist),
-			SecureWebsocket: fromNullBool(sub.SecureWebsocket),
-			WsHref:          fromNullString(sub.WsHref),
+			MaxUpdateRateMs: fromNullInt64ToIntValue(sub.MaxUpdateRateMs),
+			Persist:         fromNullBoolToBool(sub.Persist),
+			Secure:          fromNullBool(sub.SecureWebsocket),
+			WsHref:          fromNullStringToString(sub.WsHref),
 		}
 	}
 	return subscriptions, nil
@@ -597,6 +632,17 @@ func fromNullString(ns sql.NullString) *string {
 		return nil
 	}
 	return &ns.String
+}
+
+func toNullStringFromString(s string) sql.NullString {
+	return sql.NullString{String: s, Valid: true}
+}
+
+func fromNullStringToString(ns sql.NullString) string {
+	if !ns.Valid {
+		return ""
+	}
+	return ns.String
 }
 
 func fromNullRawMessage(data []byte) json.RawMessage {
@@ -635,6 +681,17 @@ func fromNullInt64ToInt(ni sql.NullInt64) *int {
 	return &i
 }
 
+func fromNullInt64ToIntValue(ni sql.NullInt64) int {
+	if !ni.Valid {
+		return 0
+	}
+	return int(ni.Int64)
+}
+
+func toNullInt64FromInt(i int) sql.NullInt64 {
+	return sql.NullInt64{Int64: int64(i), Valid: true}
+}
+
 func toNullBool(b *bool) sql.NullBool {
 	if b == nil {
 		return sql.NullBool{Valid: false}
@@ -647,6 +704,17 @@ func fromNullBool(nb sql.NullBool) *bool {
 		return nil
 	}
 	return &nb.Bool
+}
+
+func fromNullBoolToBool(nb sql.NullBool) bool {
+	if !nb.Valid {
+		return false
+	}
+	return nb.Bool
+}
+
+func toNullBoolFromBool(b bool) sql.NullBool {
+	return sql.NullBool{Bool: b, Valid: true}
 }
 
 func (r *SQLiteRepository) IDExistsAsOtherType(ctx context.Context, id string, excludeType registry.ResourceType) (bool, error) {

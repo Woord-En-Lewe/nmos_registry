@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A single subscription to a Query API",
+  "properties": {
+    "authorization": {
+      "description": "Whether the WebSocket connection requires authorization.",
+      "type": "boolean"
+    },
+    "id": {
+      "description": "Globally unique identifier for the subscription",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "max_update_rate_ms": {
+      "description": "Rate limiting for messages. Sets the minimum interval (in milliseconds) between consecutive WebSocket messages.",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "params": {
+      "description": "Object containing attributes to filter the resource on as per the Query Parameters specification. Can be empty.",
+      "type": "object"
+    },
+    "persist": {
+      "description": "Whether the API will retain or destroy the subscription after the final client disconnects",
+      "type": "boolean"
+    },
+    "resource_path": {
+      "description": "HTTP resource path in the Query API to which this subscription relates",
+      "enum": [
+        "/nodes",
+        "/devices",
+        "/sources",
+        "/flows",
+        "/senders",
+        "/receivers"
+      ],
+      "type": "string"
+    },
+    "secure": {
+      "description": "Whether a secure WebSocket connection (wss://) is required.",
+      "type": "boolean"
+    },
+    "ws_href": {
+      "description": "Address to connect to for the WebSocket subscription",
+      "format": "uri",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "ws_href",
+    "max_update_rate_ms",
+    "persist",
+    "resource_path",
+    "params"
+  ],
+  "title": "Subscription",
+  "type": "object"
+}

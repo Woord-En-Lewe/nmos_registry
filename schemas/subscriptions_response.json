@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A list of subscription resources",
+  "items": {
+    "$ref": "subscription_response.json"
+  },
+  "title": "Collection of subscriptions",
+  "type": "array",
+  "uniqueItems": true
+}

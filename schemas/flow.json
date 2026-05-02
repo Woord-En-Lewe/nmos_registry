@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Describes a Flow",
+  "title": "Flow resource",
+  "anyOf": [
+    { "$ref": "flow_video_raw.json" },
+    { "$ref": "flow_audio_raw.json" }
+  ]
+}

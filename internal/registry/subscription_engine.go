@@ -28,14 +28,22 @@ func (e *SubscriptionEngine) SetNotifier(notifier INotifier) {
 	e.notifier = notifier
 }
 
-func (e *SubscriptionEngine) CreateSubscription(ctx context.Context, resourcePath string, params json.RawMessage, maxUpdateRateMs *int, persist *bool, secureWebsocket *bool) (*Subscription, error) {
+func (e *SubscriptionEngine) CreateSubscription(ctx context.Context, resourcePath string, params json.RawMessage, maxUpdateRateMs *int, persist *bool, secure *bool) (*Subscription, error) {
+	rateMs := 100
+	if maxUpdateRateMs != nil {
+		rateMs = *maxUpdateRateMs
+	}
+	persistVal := false
+	if persist != nil {
+		persistVal = *persist
+	}
 	sub := &Subscription{
 		ID:              uuid.New().String(),
 		ResourcePath:    resourcePath,
 		Params:          params,
-		MaxUpdateRateMs: maxUpdateRateMs,
-		Persist:         persist,
-		SecureWebsocket: secureWebsocket,
+		MaxUpdateRateMs: rateMs,
+		Persist:         persistVal,
+		Secure:          secure,
 	}
 
 	if err := e.repo.UpsertSubscription(ctx, *sub); err != nil {

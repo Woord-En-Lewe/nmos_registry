@@ -107,8 +107,9 @@ func TestResourceManager_Sources(t *testing.T) {
 	}
 
 	// Register
-	err := manager.RegisterSource(ctx, source)
-	if err != nil {
+	result := manager.RegisterSource(ctx, source)
+	if result.IsFailure() {
+		err, _ := result.Error()
 		t.Fatalf("failed to register source: %v", err)
 	}
 
@@ -145,8 +146,9 @@ func TestResourceManager_Flows(t *testing.T) {
 	}
 
 	// Register
-	err := manager.RegisterFlow(ctx, flow)
-	if err != nil {
+	result := manager.RegisterFlow(ctx, flow)
+	if result.IsFailure() {
+		err, _ := result.Error()
 		t.Fatalf("failed to register flow: %v", err)
 	}
 
@@ -180,8 +182,9 @@ func TestResourceManager_Senders(t *testing.T) {
 	}
 
 	// Register
-	err := manager.RegisterSender(ctx, sender)
-	if err != nil {
+	result := manager.RegisterSender(ctx, sender)
+	if result.IsFailure() {
+		err, _ := result.Error()
 		t.Fatalf("failed to register sender: %v", err)
 	}
 
@@ -216,8 +219,9 @@ func TestResourceManager_Receivers(t *testing.T) {
 	}
 
 	// Register
-	err := manager.RegisterReceiver(ctx, receiver)
-	if err != nil {
+	result := manager.RegisterReceiver(ctx, receiver)
+	if result.IsFailure() {
+		err, _ := result.Error()
 		t.Fatalf("failed to register receiver: %v", err)
 	}
 

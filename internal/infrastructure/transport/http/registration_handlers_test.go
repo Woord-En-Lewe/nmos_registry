@@ -52,8 +52,8 @@ func TestRegisterNode(t *testing.T) {
 	handlers := NewRegistrationHandlers(rm, he)
 
 	node := registry.Node{
-		ID:          "test-node-id",
-		Version:     "1.0",
+		ID:          "12345678-1234-1234-1234-123456789012",
+		Version:     "1:0",
 		Label:       "Test Node",
 		Description: "A test node",
 		Api:         json.RawMessage(`{}`),
@@ -98,8 +98,11 @@ func TestHeartbeat(t *testing.T) {
 
 	var resp map[string]interface{}
 	json.Unmarshal(rr.Body.Bytes(), &resp)
-	if resp["health"] == nil {
-		t.Errorf("expected health field in response, got %v", rr.Body.String())
+	if rr.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %v", rr.Code)
+	}
+	if len(resp) != 0 {
+		t.Errorf("expected empty response body, got %v", rr.Body.String())
 	}
 }
 
@@ -110,8 +113,8 @@ func TestRegisterResourceReturns200OnUpdate(t *testing.T) {
 	handlers := NewRegistrationHandlers(rm, he)
 
 	node := registry.Node{
-		ID:          "test-node-id",
-		Version:     "1.0",
+		ID:          "12345678-1234-1234-1234-123456789012",
+		Version:     "1:0",
 		Label:       "Test Node",
 		Description: "A test node",
 		Api:         json.RawMessage(`{}`),
@@ -130,7 +133,7 @@ func TestRegisterResourceReturns200OnUpdate(t *testing.T) {
 		t.Errorf("first registration should return 201, got %v", rr.Code)
 	}
 
-	node.Version = "2.0"
+	node.Version = "2:0"
 	data, _ = json.Marshal(node)
 	reqBody, _ = json.Marshal(registrationRequest{
 		Type: registry.ResourceTypeNode,
@@ -153,8 +156,8 @@ func TestRegisterResourceLocationHeader(t *testing.T) {
 	handlers := NewRegistrationHandlers(rm, he)
 
 	node := registry.Node{
-		ID:          "test-node-id",
-		Version:     "1.0",
+		ID:          "12345678-1234-1234-1234-123456789012",
+		Version:     "1:0",
 		Label:       "Test Node",
 		Description: "A test node",
 		Api:         json.RawMessage(`{}`),
@@ -173,8 +176,8 @@ func TestRegisterResourceLocationHeader(t *testing.T) {
 	if location == "" {
 		t.Errorf("expected Location header on creation, got empty string")
 	}
-	if location != "/x-nmos/query/v1.3/nodes/test-node-id" {
-		t.Errorf("expected Location header to be /x-nmos/query/v1.3/nodes/test-node-id, got %s", location)
+	if location != "/x-nmos/registration/v1.3/resource/nodes/12345678-1234-1234-1234-123456789012" {
+		t.Errorf("expected Location header to be /x-nmos/registration/v1.3/resource/nodes/12345678-1234-1234-1234-123456789012, got %s", location)
 	}
 }
 
@@ -185,8 +188,8 @@ func TestErrorResponseFormat(t *testing.T) {
 	handlers := NewRegistrationHandlers(rm, he)
 
 	node := registry.Node{
-		ID:          "test-node-id",
-		Version:     "1.0",
+		ID:          "12345678-1234-1234-1234-123456789012",
+		Version:     "1:0",
 		Label:       "Test Node",
 		Description: "A test node",
 		Api:         json.RawMessage(`{}`),

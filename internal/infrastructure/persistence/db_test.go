@@ -13,11 +13,16 @@ import (
 
 func TestDatabasePersistence(t *testing.T) {
 	// 1. Setup in-memory SQLite
-	sqlDB, err := sql.Open("sqlite", ":memory:?_pragma=foreign_keys(1)")
+	sqlDB, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("failed to open sqlite: %v", err)
 	}
 	defer sqlDB.Close()
+
+	// Enable foreign keys
+	if _, err := sqlDB.Exec("PRAGMA foreign_keys = ON"); err != nil {
+		t.Fatalf("failed to enable foreign keys: %v", err)
+	}
 
 	// 2. Initialize schema
 	if err := persistence.InitDB(sqlDB); err != nil {

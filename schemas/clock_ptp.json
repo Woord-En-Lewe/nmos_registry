@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Describes a clock referenced to PTP",
+    "properties": {
+        "gmid": {
+            "description": "ID of the PTP reference used by this clock",
+            "pattern": "^[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}-[0-9a-f]{2}$",
+            "type": "string"
+        },
+        "locked": {
+            "description": "Lock state of this clock to the external reference. If true, this device follows the external reference, otherwise it has no defined relationship to the external reference",
+            "type": "boolean"
+        },
+        "name": {
+            "description": "Name of this refclock (unique for this set of clocks)",
+            "pattern": "^clk[0-9]+$",
+            "type": "string"
+        },
+        "ref_type": {
+            "description": "Type of external reference used by this clock",
+            "enum": [
+                "ptp"
+            ],
+            "type": "string"
+        },
+        "traceable": {
+            "description": "External refclock is synchronised to International Atomic Time (TAI)",
+            "type": "boolean"
+        },
+        "version": {
+            "description": "Version of PTP reference used by this clock",
+            "enum": [
+                "IEEE1588-2008"
+            ],
+            "type": "string"
+        }
+    },
+    "required": [
+        "name",
+        "ref_type",
+        "traceable",
+        "version",
+        "gmid",
+        "locked"
+    ],
+    "title": "PTP clock",
+    "type": "object"
+}

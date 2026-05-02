@@ -268,7 +268,7 @@ func TestSubscriptionEngine_PersistFlag(t *testing.T) {
 		t.Fatalf("GetSubscription failed: %v", err)
 	}
 
-	if retrieved.Persist == nil || !*retrieved.Persist {
+	if !retrieved.Persist {
 		t.Errorf("Expected persist to be true")
 	}
 }

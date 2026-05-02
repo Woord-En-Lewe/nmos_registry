@@ -22,15 +22,15 @@ type Node struct {
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
 	Description string          `json:"description"`
-	Tags        json.RawMessage `json:"tags"`
+	Tags        json.RawMessage `json:"tags,omitempty"`
 	Href        string          `json:"href"`
-	Hostname    *string         `json:"hostname"`
-	Caps        json.RawMessage `json:"caps"`
+	Hostname    *string         `json:"hostname,omitempty"`
+	Caps        json.RawMessage `json:"caps,omitempty"`
 	Api         json.RawMessage `json:"api"`
-	Services    json.RawMessage `json:"services"`
-	Clocks      json.RawMessage `json:"clocks"`
-	Interfaces  json.RawMessage `json:"interfaces"`
-	LastSeen    time.Time       `json:"last_seen"`
+	Services    json.RawMessage `json:"services,omitempty"`
+	Clocks      json.RawMessage `json:"clocks,omitempty"`
+	Interfaces  json.RawMessage `json:"interfaces,omitempty"`
+	LastSeen    time.Time       `json:"last_seen,omitempty"`
 }
 
 type Device struct {
@@ -40,11 +40,11 @@ type Device struct {
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
 	Description string          `json:"description"`
-	Tags        json.RawMessage `json:"tags"`
+	Tags        json.RawMessage `json:"tags,omitempty"`
 	Type        string          `json:"type"`
-	Senders     json.RawMessage `json:"senders"`
-	Receivers   json.RawMessage `json:"receivers"`
-	Controls    json.RawMessage `json:"controls"`
+	Senders     json.RawMessage `json:"senders,omitempty"`
+	Receivers   json.RawMessage `json:"receivers,omitempty"`
+	Controls    json.RawMessage `json:"controls,omitempty"`
 }
 
 type Source struct {
@@ -54,12 +54,12 @@ type Source struct {
 	Version     string          `json:"version"`
 	Label       string          `json:"label"`
 	Description string          `json:"description"`
-	Tags        json.RawMessage `json:"tags"`
-	GrainRate   json.RawMessage `json:"grain_rate"`
+	Tags        json.RawMessage `json:"tags,omitempty"`
+	GrainRate   json.RawMessage `json:"grain_rate,omitempty"`
 	Format      string          `json:"format"`
-	Caps        json.RawMessage `json:"caps"`
-	Parents     json.RawMessage `json:"parents"`
-	ClockName   *string         `json:"clock_name"`
+	Caps        json.RawMessage `json:"caps,omitempty"`
+	Parents     json.RawMessage `json:"parents,omitempty"`
+	ClockName   *string         `json:"clock_name,omitempty"`
 }
 
 type Flow struct {
@@ -70,59 +70,68 @@ type Flow struct {
 	Version                string          `json:"version"`
 	Label                  string          `json:"label"`
 	Description            string          `json:"description"`
-	Tags                   json.RawMessage `json:"tags"`
+	Tags                   json.RawMessage `json:"tags,omitempty"`
 	Format                 string          `json:"format"`
-	MediaType              *string         `json:"media_type"`
-	SampleRate             json.RawMessage `json:"sample_rate"`
-	BitDepth               *int            `json:"bit_depth"`
-	DidSdid                json.RawMessage `json:"did_sdid"`
-	GrainRate              json.RawMessage `json:"grain_rate"`
-	FrameWidth             *int            `json:"frame_width"`
-	FrameHeight            *int            `json:"frame_height"`
-	InterlaceMode          *string         `json:"interlace_mode"`
-	Colorspace             *string         `json:"colorspace"`
-	Components             json.RawMessage `json:"components"`
-	TransferCharacteristic *string         `json:"transfer_characteristic"`
+	MediaType              *string         `json:"media_type,omitempty"`
+	SampleRate             json.RawMessage `json:"sample_rate,omitempty"`
+	BitDepth               *int            `json:"bit_depth,omitempty"`
+	DidSdid                json.RawMessage `json:"did_sdid,omitempty"`
+	GrainRate              json.RawMessage `json:"grain_rate,omitempty"`
+	FrameWidth             *int            `json:"frame_width,omitempty"`
+	FrameHeight            *int            `json:"frame_height,omitempty"`
+	InterlaceMode          *string         `json:"interlace_mode,omitempty"`
+	Colorspace             *string         `json:"colorspace,omitempty"`
+	Components             json.RawMessage `json:"components,omitempty"`
+	TransferCharacteristic *string         `json:"transfer_characteristic,omitempty"`
 }
 
 type Sender struct {
-	ID                     string          `json:"id"`
-	ApiVersion             string          `json:"api_version"`
-	DeviceID               string          `json:"device_id"`
-	FlowID                 *string         `json:"flow_id"`
-	Version                string          `json:"version"`
-	Label                  string          `json:"label"`
-	Description            string          `json:"description"`
-	Tags                   json.RawMessage `json:"tags"`
-	Transport              string          `json:"transport"`
-	ManifestHref           *string         `json:"manifest_href"`
-	InterfaceBindings      json.RawMessage `json:"interface_bindings"`
-	SubscriptionReceiverID *string         `json:"subscription_receiver_id"`
-	SubscriptionActive     *bool           `json:"subscription_active"`
+	ID                     string                `json:"id"`
+	ApiVersion             string                `json:"api_version"`
+	DeviceID               string                `json:"device_id"`
+	FlowID                 *string               `json:"flow_id,omitempty"`
+	Version                string                `json:"version"`
+	Label                  string                `json:"label"`
+	Description            string                `json:"description"`
+	Tags                   json.RawMessage       `json:"tags,omitempty"`
+	Transport              string                `json:"transport"`
+	ManifestHref           *string               `json:"manifest_href,omitempty"`
+	InterfaceBindings      json.RawMessage       `json:"interface_bindings,omitempty"`
+	Caps                   json.RawMessage       `json:"caps,omitempty"`
+	Subscription           *SenderSubscription   `json:"subscription,omitempty"`
+}
+
+type SenderSubscription struct {
+	ReceiverID *string `json:"receiver_id,omitempty"`
+	Active     *bool   `json:"active,omitempty"`
 }
 
 type Receiver struct {
-	ID                   string          `json:"id"`
-	ApiVersion           string          `json:"api_version"`
-	DeviceID             string          `json:"device_id"`
-	Version              string          `json:"version"`
-	Label                string          `json:"label"`
-	Description          string          `json:"description"`
-	Tags                 json.RawMessage `json:"tags"`
-	Transport            string          `json:"transport"`
-	Format               string          `json:"format"`
-	Caps                 json.RawMessage `json:"caps"`
-	InterfaceBindings    json.RawMessage `json:"interface_bindings"`
-	SubscriptionSenderID *string         `json:"subscription_sender_id"`
-	SubscriptionActive   *bool           `json:"subscription_active"`
+	ID                string          `json:"id"`
+	ApiVersion        string          `json:"api_version"`
+	DeviceID          string          `json:"device_id"`
+	Version           string          `json:"version"`
+	Label             string          `json:"label"`
+	Description       string          `json:"description"`
+	Tags              json.RawMessage `json:"tags,omitempty"`
+	Transport         string          `json:"transport"`
+	Format            string          `json:"format"`
+	Caps              json.RawMessage `json:"caps,omitempty"`
+	InterfaceBindings json.RawMessage `json:"interface_bindings,omitempty"`
+	Subscription      *ReceiverSubscription `json:"subscription,omitempty"`
+}
+
+type ReceiverSubscription struct {
+	SenderID *string `json:"sender_id,omitempty"`
+	Active   *bool   `json:"active,omitempty"`
 }
 
 type Subscription struct {
 	ID              string          `json:"id"`
 	ResourcePath    string          `json:"resource_path"`
-	Params          json.RawMessage `json:"params"`
-	MaxUpdateRateMs *int            `json:"max_update_rate_ms"`
-	Persist         *bool           `json:"persist"`
-	SecureWebsocket *bool           `json:"secure_websocket"`
-	WsHref          *string         `json:"ws_href"`
+	Params          json.RawMessage `json:"params,omitempty"`
+	MaxUpdateRateMs int             `json:"max_update_rate_ms"`
+	Persist         bool            `json:"persist"`
+	Secure          *bool           `json:"secure,omitempty"`
+	WsHref          string          `json:"ws_href"`
 }

@@ -1,6 +1,7 @@
 package transporthttp
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -14,7 +15,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
+			w.Header().Set("Allow", "GET, POST, PUT, DELETE, OPTIONS")
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
@@ -30,6 +32,11 @@ func NewRouter(regHandlers *RegistrationHandlers, queryHandlers *QueryHandlers) 
 	r.Use(corsMiddleware)
 
 	r.Route("/x-nmos", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`["query/", "registration/"]`))
+		})
+
 		r.Route("/registration", func(r chi.Router) {
 			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 				// List supported versions
@@ -94,7 +101,27 @@ func NewRouter(regHandlers *RegistrationHandlers, queryHandlers *QueryHandlers) 
 				r.Get("/subscriptions/{id}", queryHandlers.GetSubscription)
 				r.Delete("/subscriptions/{id}", queryHandlers.DeleteSubscription)
 				r.Get("/subscriptions/{id}/ws", queryHandlers.HandleSubscriptionWebSocket)
+
+				r.Get("/subscriptions/{id}/*", queryHandlers.HandleSubscriptionWebSocket)
 			})
+		})
+	})
+
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			Code:  http.StatusNotFound,
+			Error: "not found",
+		})
+	})
+
+	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			Code:  http.StatusMethodNotAllowed,
+			Error: "method not allowed",
 		})
 	})
 
